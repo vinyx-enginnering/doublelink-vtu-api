@@ -25,15 +25,50 @@ const transactions = [
 
 // get my transactions
 const my_transactions = async (request, response) => {
-    try {
-        const transactions = await Transaction.find({ user: request.user._id });
 
-        response.status(200).json(transactions);
-    } catch (error) {
-        console.log(error);
-        response.status(500).json({ message: "Server Error " });
+    const userId = request.user._id;
+    const { period } = request.params;
+
+    console.log(userId, period)
+
+    let startDate = new Date();
+    let endDate = new Date();
+
+    switch (period) {
+        case 'today':
+            startDate.setHours(0, 0, 0, 0);
+            break;
+        case 'yesterday':
+            startDate.setDate(startDate.getDate() - 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setDate(endDate.getDate() - 1);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        case 'week':
+            startDate.setDate(startDate.getDate() - 7);
+            startDate.setHours(0, 0, 0, 0);
+            break;
+        case 'month':
+            startDate.setDate(startDate.getDate() - 30);
+            startDate.setHours(0, 0, 0, 0);
+            break;
+        case 'all':
+            startDate = new Date(0);
+            break;
     }
-}
+
+    try {
+        const transactions = await Transaction.find({
+            user: userId,
+            createdAt: { $gte: startDate, $lte: endDate },
+        });
+
+        console.log(startDate, endDate)
+        response.json(transactions);
+    } catch (err) {
+        response.status(500).json({ message: err.message });
+    }
+};
 
 // get transaction for this month
 const transaction_chart = async (request, response) => {

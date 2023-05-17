@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 
 // Purchase Airtime
 const airtime_topup = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = "https://vtpass.com/api/pay";
 
     const { serviceID, amount, phone } = request.body;
     console.log({ serviceID, amount, phone })
@@ -54,8 +54,8 @@ const airtime_topup = async (request, response) => {
                 { serviceID, amount: price, phone: mobile, request_id },
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )
