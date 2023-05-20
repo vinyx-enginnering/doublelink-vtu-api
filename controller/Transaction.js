@@ -61,7 +61,7 @@ const my_transactions = async (request, response) => {
         const transactions = await Transaction.find({
             user: userId,
             createdAt: { $gte: startDate, $lte: endDate },
-        });
+        }).sort({ createdAt: -1 });
 
         console.log(startDate, endDate)
         response.json(transactions);
