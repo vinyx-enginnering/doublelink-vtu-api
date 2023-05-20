@@ -119,9 +119,9 @@ const spectranet_data = async (request, response) => {
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(amount),
-            narration: `Spectranet Topup`,
+            narration: `${data.content.transactions.product_name}`,
             referrence_id: data.requestId,
-            status: "Success",
+            status: data.content.transactions.status,
             user: request.user._id,
             commission: cash_back,
             type: "Payable",

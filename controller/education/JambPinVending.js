@@ -175,7 +175,7 @@ const purchase_jamb_pin = async (request, response) => {
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(variation_amount),
-            narration: `Jamb Pin Vending Payment`,
+            narration: `${data.content.transactions.product_name}`,
             referrence_id: data.requestId,
             status: data.content.transactions.status,
             user: request.user._id,
@@ -183,7 +183,6 @@ const purchase_jamb_pin = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    product: `${data.content.transactions.product_name}`,
                     purchased_token: data.purchased_code,
                     pin: data.Pin,
                     profileID: billersCode,

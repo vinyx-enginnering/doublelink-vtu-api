@@ -170,7 +170,6 @@ const purchase_tv_plan = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    product: `${data.content.transactions.product_name}`,
                     billersCode: `${billersCode}`,
                     subscription_type: `${subscription_type}`,
                 }
@@ -279,15 +278,14 @@ const purchase_showmax_plan = async (request, response) => {
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(amount),
-            narration: `Showmax Subscription`,
+            narration: `${data.content.transactions.product_name}`,
             referrence_id: data.requestId,
-            status: "Processing",
+            status: data.content.transactions.status,
             user: request.user._id,
             commission: cash_back,
             type: "Payable",
             logs: [
                 {
-                    product: `${data.content.transactions.product_name}`,
                     billersCode: `${billersCode}`,
                     mobile: `${billersCode}`
                 }

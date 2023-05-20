@@ -159,7 +159,6 @@ const purchase_ikeja = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    product: `${data.content.transactions.product_name}`,
                     meterNumber: `${billersCode}`,
                     meterType: `${meterType}`,
                     token: data.token,

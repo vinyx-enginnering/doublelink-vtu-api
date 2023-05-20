@@ -66,7 +66,8 @@ const airtime_topup = async (request, response) => {
         if (
             (data && data.response_description === "TRANSACTION FAILED") ||
             data.response_description === "INVALID ARGUMENTS" ||
-            data.response_description === 'LOW WALLET BALANCE'
+            data.response_description === 'LOW WALLET BALANCE' ||
+            data.response_description === 'BELOW MINIMUM AMOUNT ALLOWED'
         ) {
             console.log(data);
             response.status(400).json({
@@ -90,12 +91,14 @@ const airtime_topup = async (request, response) => {
             { $inc: { cashback: parseInt(cash_back) } }
         );
 
+        console.log(data)
+
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(amount),
-            narration: `Airtime Topup`,
+            narration: `${data.content.transactions.product_name}`,
             referrence_id: data.requestId,
-            status: "Success",
+            status: data.content.transactions.status,
             user: request.user._id,
             commission: cash_back,
             type: "Payable",
@@ -103,7 +106,6 @@ const airtime_topup = async (request, response) => {
                 {
                     phone_number: `${phone}`,
                     network: `${serviceID}`,
-                    data
                 }
             ]
         });

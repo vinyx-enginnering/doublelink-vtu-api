@@ -133,7 +133,7 @@ const purchase_waec = async (request, response) => {
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(variation_amount),
-            narration: `Waec Private Registration Payment`,
+            narration: `${data.content.transactions.product_name}`,
             referrence_id: data.requestId,
             status: data.content.transactions.status,
             user: request.user._id,
@@ -141,7 +141,6 @@ const purchase_waec = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    product: `${data.content.transactions.product_name}`,
                     purchased_token: data.purchased_code,
                     tokens: data.tokens
 
