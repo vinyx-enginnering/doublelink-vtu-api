@@ -2,10 +2,11 @@ import Transaction from "../../model/Transaction.js";
 import Wallet from "../../model/Wallet.js";
 import moment from "moment-timezone";
 import axios from "axios";
+import ScratchCard from "../../model/EducationScratchCard.js";
 
 // verify meter
 const get_result_checker_plans = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/service-variations?serviceID=waec";
+    const url = "https://vtpass.com/api/service-variations?serviceID=waec";
 
     try {
 
@@ -130,6 +131,7 @@ const purchase_result_checker = async (request, response) => {
             { $inc: { cashback: cash_back } }
         );
 
+
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(variation_amount),
@@ -142,11 +144,17 @@ const purchase_result_checker = async (request, response) => {
             logs: [
                 {
                     purchased_token: data.purchased_code,
-                    cards: data.cards
-
                 }
             ]
         });
+
+        await ScratchCard.create({
+            transaction_referrence: data.requestId,
+            user: request.user._id,
+            card_or_pin_type: `${data.content.transactions.product_name}`,
+            cards: data.cards
+        });
+
         // send response
         response.status(200).json(transaction);
     } catch (error) {
