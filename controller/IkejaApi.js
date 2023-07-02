@@ -46,7 +46,7 @@ const verify_meter = async (request, response) => {
 
 // purchase ikedc
 const purchase_ikeja = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = `https://sandbox.vtpass.com/api/pay`;
 
     const { billersCode, meterType, amount, phone, serviceID } = request.body;
 

@@ -5,6 +5,8 @@ const SettlementSchema = mongoose.Schema({
     account_name: String,
     account_number: String,
     bank_code: String,
+    bank_name: String,
+    status: String,
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

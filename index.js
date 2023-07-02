@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
+import fileUpload from "express-fileupload";
 const __dirname = path.resolve();
 
 // setup
@@ -28,11 +29,14 @@ import Waec from "./route/education/WaecApi.js";
 import WaecResult from "./route/education/WaecResult.js";
 import JambVending from "./route/education/JambPinVending.js";
 import TvPayment from "./route/TvPayment.js";
+import Settlement from "./route/Settlement.js";
+import Profile from "./route/Profile.js";
 
 // initialize app
 const app = express();
 
 // configure middlewares resources...
+app.use(fileUpload());
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 app.use(express.json({ limit: "50mb" }));
 app.use(
@@ -65,6 +69,8 @@ app.use("/waec", Waec);
 app.use("/waec-result", WaecResult);
 app.use("/jamb", JambVending);
 app.use("/tv", TvPayment);
+app.use("/settlement", Settlement);
+app.use("/profile", Profile);
 
 
 const PORT = process.env.PORT || 5000;
