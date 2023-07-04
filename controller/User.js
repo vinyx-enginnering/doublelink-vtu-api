@@ -98,7 +98,7 @@ const register = async (request, response) => {
     }
   } catch (error) {
     console.log(error);
-    response.status(500).json({ message: "Server Error " });
+    response.status(500).json({ message: "Network Error " });
   }
 }
 
@@ -132,7 +132,7 @@ const login = async (request, response) => {
     }
   } catch (error) {
     console.log(error);
-    response.status(500).json({ message: "Server Error " });
+    response.status(500).json({ message: "Network Error " });
   }
 };
 
@@ -146,7 +146,7 @@ const get_user = async (request, response) => {
     response.status(200).json(user);
   } catch (error) {
     console.log(error);
-    response.status(500).json({ message: "Server Error " });
+    response.status(500).json({ message: "Network Error " });
   }
 };
 

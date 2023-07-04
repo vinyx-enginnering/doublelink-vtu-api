@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import timestamps from "mongoose-timestamp";
+import PasswordChangeLog from "./PasswordChangeLog.js";
 
 const UserSchema = mongoose.Schema({
     username: String,
@@ -15,6 +16,16 @@ const UserSchema = mongoose.Schema({
     password: String,
     admin_pwd: String
 });
+
+UserSchema.pre('save', async function (next) {
+    if (this.isModified('password')) {
+        // Create a new password change log
+        const changeLog = new PasswordChangeLog({ user: this._id });
+        await changeLog.save();
+    }
+    next();
+});
+
 
 UserSchema.plugin(timestamps);
 

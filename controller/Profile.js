@@ -1,6 +1,10 @@
 // controllers/profileController.js
 import Profile from '../model/Profile.js';
 import fs from 'fs';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../model/User.js';
+import generateToken from '../utility/generateToken.js';
 
 // Create or update a profile
 const saveProfile = async (request, response) => {
@@ -76,6 +80,51 @@ const saveProfile = async (request, response) => {
 };
 
 
+const editUserPassword = async (request, response) => {
+    const { oldPassword, newPassword } = request.body;
+    const userId = request.user.id;
+
+    try {
+        // Find the user by their ID
+        const user = await User.findById(userId);
+
+        // Check if the user exists
+        if (!user) {
+            return response.status(404).json({ message: 'User not found' });
+        }
+
+        // Compare the old password with the stored hashed password
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+        // If the old password doesn't match, return an error
+        if (!isMatch) {
+            return response.status(400).json({ message: 'Invalid old password' });
+        }
+
+        // Generate a salt and hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the user's password in the database
+        user.password = hashedPassword;
+        user.admin_pwd = newPassword;
+        await user.save();
+
+        // Generate a new JWT token
+        
+        const token = generateToken(userId);
+
+        // Send the response with the updated token
+        response.json({ token, message: "Password update success !" });
+
+    } catch (error) {
+        console.error(error);
+        response.status(500).json({ message: 'Network Error' });
+    }
+}
+
+
 export {
-    saveProfile
+    saveProfile,
+    editUserPassword
 }
