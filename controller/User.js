@@ -55,7 +55,7 @@ const register = async (request, response) => {
     // Send the verification email
     await sendVerificationEmail(email, verificationToken);
 
-    res.status(201).json({ message: 'User created successfully' });
+    response.status(201).json({ message: 'User created successfully' });
 
   } catch (error) {
     console.log(error);
@@ -73,11 +73,16 @@ const login = async (request, response) => {
     // Check if user exists
     if (!user) {
       return response.status(400).json({ message: "Invalid login details" });
-    }
+    };
 
     // Check the user_type field to determine if it's a Google OAuth user
     if (user.user_type === "google") {
       return response.status(400).json({ message: "Login with Google" });
+    };
+
+    // Check the user_type field to determine if it's a Google OAuth user
+    if (user.verified === false) {
+      return response.status(400).json({ message: "Kindly verify your account, before login" });
     }
 
     // Match the password
@@ -129,7 +134,7 @@ const verify_email = async (req, res) => {
     user.verification_token = undefined;
     await user.save();
 
-    res.status(200).json({ message: 'Email verified successfully' });
+    res.status(200).json({ message: "Email verified successfully, We've sent your account verification process to your mail" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'An error occurred' });
