@@ -2,6 +2,9 @@
   "name": "reprint-server",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">16"
+  },
   "description": "",
   "main": "index.js",
   "scripts": {
