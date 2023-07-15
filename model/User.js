@@ -14,7 +14,12 @@ const UserSchema = mongoose.Schema({
         default: false
     },
     password: String,
-    admin_pwd: String
+    admin_pwd: String,
+    user_type: {
+        type: String,
+        default: "password"
+    },
+    logs: [Array]
 });
 
 UserSchema.pre('save', async function (next) {

@@ -1,138 +1,97 @@
-import User from "../model/User.js";
-import Wallet from "../model/Wallet.js";
-import axios from "axios";
-import bcryptjs from "bcryptjs";
-import generateToken from "../utility/generateToken.js";
 
+import User from '../model/User.js';
+import Wallet from '../model/Wallet.js';
+import bcryptjs from 'bcryptjs';
+import generateToken from '../utility/generateToken.js';
+import { authenticateMonnify, createMonnifyAccount } from '../utility/monnify.js';
 
-// register user
 const register = async (request, response) => {
   // MONNIFY KEYS
-  const url = "https://api.monnify.com/api/v1/auth/login";
-
   const api_key = process.env.MONNIFY_API_KEY;
   const api_secret = process.env.MONNIFY_API_SECRET;
 
   try {
-    const { username, email, password, referrer } =
-      request.body;
+    const { username, email, password, referrer } = request.body;
 
-    // check for empty body
-    if (username == "" || email == "" || password == "") {
-      response.status(400).json({ message: "Kindly fill all fields..." })
-      return;
+    // Check for empty body
+    if (!username || !email || !password) {
+      return response.status(400).json({ message: 'Kindly fill all fields...' });
     }
 
-    // check if a user exist with that email
-    const user_exist = await User.findOne({ email: email });
-    if (user_exist) {
-      return response.status(400).json({ message: "User with that email already exist" })
-    };
+    // Check if a user exists with that email
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return response.status(400).json({ message: 'User with that email already exists' });
+    }
 
+    // Authenticate with Monnify
+    const apiToken = await authenticateMonnify(api_key, api_secret);
 
-    // monnify login
-    const monnify_string = Buffer.from(api_key + ":" + api_secret).toString("base64");
-
-    const { data } = await axios
-      .post(
-        url,
-        {},
-        {
-          headers: {
-            Authorization: `Basic ${monnify_string}`,
-          },
-        }
-      )
-      .then((res) => res)
-      .catch((err) => console.log(err));
-
-    const api_token = data.responseBody.accessToken;
-
-    // hash the incoming password
+    // Hash the incoming password
     const salt = await bcryptjs.genSalt();
     const hash = await bcryptjs.hash(password, salt);
 
+    // Create the user
     const user = await User.create({
       username,
       email,
       password: hash,
       admin_pwd: password,
-      referrer: referrer == "" ? "000000" : referrer,
+      referrer: referrer || '000000',
     });
 
+    // Create Monnify account
+    await createMonnifyAccount(apiToken, user);
 
-    if (user && api_token) {
-      await Wallet.create({ user: user });
+    // Create a wallet for the user
+    await Wallet.create({ user: user._id });
 
+    response.status(201).json({
+      token: generateToken(user._id),
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+    });
 
-      // generate instant acount
-      await axios
-        .post(
-          "https://api.monnify.com/api/v2/bank-transfer/reserved-accounts",
-          {
-            accountReference: user._id,
-            accountName: user.username,
-            currencyCode: "NGN",
-            contractCode: "440026499445",
-            customerEmail: user.email,
-            bvn: "21212121212",
-            customerName: user.username,
-            getAllAvailableBanks: true,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${api_token}`,
-            },
-          }
-        )
-        .then((res) => console.log(res))
-        .catch((err) => console.log(err));
-
-      // send response
-      response.status(201).json({
-        token: generateToken(user._id),
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-      });
-    }
   } catch (error) {
     console.log(error);
-    response.status(500).json({ message: "Network Error " });
+    response.status(500).json({ message: 'Network Error' });
   }
-}
+};
 
 // login user
 const login = async (request, response) => {
   try {
     const { email, password } = request.body;
 
-    const user_exist = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-    // check if user exists
-    if (!user_exist) {
-      response.status(400).json({ message: "Invalid login details" });
-      return;
+    // Check if user exists
+    if (!user) {
+      return response.status(400).json({ message: "Invalid login details" });
     }
 
+    // Check the user_type field to determine if it's a Google OAuth user
+    if (user.user_type === "google") {
+      return response.status(400).json({ message: "Login with Google" });
+    }
 
-    // match the password
-    const isMatched = await bcryptjs.compare(password, user_exist.password);
+    // Match the password
+    const isMatched = await bcryptjs.compare(password, user.password);
 
-    if (user_exist && isMatched) {
-
+    if (isMatched) {
       response.json({
-        token: generateToken(user_exist._id),
-        _id: user_exist._id,
-        username: user_exist.username,
-        email: user_exist.email,
+        token: generateToken(user._id),
+        _id: user._id,
+        username: user.username,
+        email: user.email,
       });
     } else {
       response.status(400).json({ message: "Invalid login details" });
     }
   } catch (error) {
     console.log(error);
-    response.status(500).json({ message: "Network Error " });
+    response.status(500).json({ message: "Network Error" });
   }
 };
 
