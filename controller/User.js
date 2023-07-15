@@ -4,6 +4,8 @@ import Wallet from '../model/Wallet.js';
 import bcryptjs from 'bcryptjs';
 import generateToken from '../utility/generateToken.js';
 import { authenticateMonnify, createMonnifyAccount } from '../utility/monnify.js';
+import crypto from "crypto";
+import { sendVerificationEmail } from "../utility/emailService.js";
 
 const register = async (request, response) => {
   // MONNIFY KEYS
@@ -22,7 +24,10 @@ const register = async (request, response) => {
     const userExists = await User.findOne({ email });
     if (userExists) {
       return response.status(400).json({ message: 'User with that email already exists' });
-    }
+    };
+
+    // Generate a verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     // Authenticate with Monnify
     const apiToken = await authenticateMonnify(api_key, api_secret);
@@ -38,6 +43,7 @@ const register = async (request, response) => {
       password: hash,
       admin_pwd: password,
       referrer: referrer || '000000',
+      verification_token: verificationToken,
     });
 
     // Create Monnify account
@@ -46,12 +52,10 @@ const register = async (request, response) => {
     // Create a wallet for the user
     await Wallet.create({ user: user._id });
 
-    response.status(201).json({
-      token: generateToken(user._id),
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-    });
+    // Send the verification email
+    await sendVerificationEmail(email, verificationToken);
+
+    res.status(201).json({ message: 'User created successfully' });
 
   } catch (error) {
     console.log(error);
@@ -109,8 +113,32 @@ const get_user = async (request, response) => {
   }
 };
 
+const verify_email = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Find the user with the given verification token
+    const user = await User.findOne({ verification_token: token });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid verification token' });
+    }
+
+    // Mark the user as verified
+    user.verified = true;
+    user.verification_token = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred' });
+  }
+};
+
 export {
   register,
   login,
-  get_user
+  get_user,
+  verify_email
 }

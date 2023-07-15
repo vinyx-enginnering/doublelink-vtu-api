@@ -5,20 +5,13 @@ import PasswordChangeLog from "./PasswordChangeLog.js";
 const UserSchema = mongoose.Schema({
     username: String,
     email: String,
-    Referrer: {
-        type: String,
-        default: "000001"
-    },
-    status: {
-        type: Boolean,
-        default: false
-    },
+    referrer: { type: String, default: "000001" },
+    status: { type: Boolean, default: false },
     password: String,
     admin_pwd: String,
-    user_type: {
-        type: String,
-        default: "password"
-    },
+    user_type: { type: String, default: "password" },
+    verified: { type: Boolean, default: false },
+    verification_token: { type: String },
     logs: [Array]
 });
 

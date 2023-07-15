@@ -27,6 +27,7 @@
     "mongoose-timestamp": "^0.6.0",
     "morgan": "^1.10.0",
     "normalize-mongoose": "^1.0.0",
+    "resend": "^0.17.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
