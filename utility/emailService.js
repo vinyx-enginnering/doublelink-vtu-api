@@ -1,14 +1,13 @@
 import { createTransport } from "nodemailer";
 
 
-
 const transporter = createTransport({
     host: "smtp-relay.sendinblue.com",
     secure: false,
     port: 587,
     auth: {
         user: "elechigeorgepro@gmail.com",
-        pass: process.env.SMTP_PASS,
+        pass: `zEb5mqJOP4R78FdA`,
     }
 })
 
