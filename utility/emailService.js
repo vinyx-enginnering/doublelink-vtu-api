@@ -18,7 +18,7 @@ const sendVerificationEmail = async (email, verificationToken) => {
         to: [email],
         subject: "Account Verification",
         html: `<p>Thank you for signing up. Please verify your email by clicking the following link:</p>
-          <a href="https://doublelink.vercel.app/verify/${verificationToken}">Verify Email</a>`,
+          <a href="https://doublelinkng.com/verify/${verificationToken}">Verify Email</a>`,
     };
 
     // Send the email
