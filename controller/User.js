@@ -27,7 +27,7 @@ const register = async (request, response) => {
     };
 
     // Generate a verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = Math.floor(10000000 + crypto.randomBytes(4).readUInt32BE(0) % 90000000).toString();
 
     // Authenticate with Monnify
     const apiToken = await authenticateMonnify(api_key, api_secret);
