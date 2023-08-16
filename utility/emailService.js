@@ -17,9 +17,14 @@ const sendVerificationEmail = async (email, verificationToken) => {
         from: "Doublelink <onboarding@doublelinkng.com>",
         to: [email],
         subject: "Account Verification",
-        html: `<p>Thank you for signing up. Please verify your email by clicking the following link:</p>
-          <a href="https://doublelinkng.com/verify/${verificationToken}">Verify Email</a>`,
-    };
+        html: `
+            <p>Thank you for signing up. Find the token to verify your account below:</p>
+            <p><strong>${verificationToken}</strong></p>
+            <p>Please click on the link below to verify your email:</p>
+            <a href="https://doublelinkng.com/verify/email">Verify Email</a>
+            <p>Use the above token to verify your account, when you open the link</p>
+            `,
+            };
 
     // Send the email
     transporter.sendMail(mailOptions, (error, info) => {

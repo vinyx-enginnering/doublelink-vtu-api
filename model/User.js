@@ -12,6 +12,7 @@ const UserSchema = mongoose.Schema({
     user_type: { type: String, default: "password" },
     verified: { type: Boolean, default: false },
     verification_token: { type: String },
+    reset_token: { type: String },
     logs: [Array]
 });
 

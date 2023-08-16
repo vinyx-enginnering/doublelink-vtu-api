@@ -23,11 +23,11 @@ const register = async (request, response) => {
     // Check if a user exists with that email
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return response.status(400).json({ message: 'User with that email already exists' });
+      return response.status(400).json({ message: 'Customer with that email already exists' });
     };
 
     // Generate a verification token
-    const verificationToken = Math.floor(10000000 + crypto.randomBytes(4).readUInt32BE(0) % 90000000).toString();
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Authenticate with Monnify
     const apiToken = await authenticateMonnify(api_key, api_secret);
@@ -55,7 +55,7 @@ const register = async (request, response) => {
     // Send the verification email
     await sendVerificationEmail(email, verificationToken);
 
-    response.status(201).json({ message: 'User created successfully' });
+    response.status(201).json({ message: 'Your account is created successfully! We have sent you an email to verify your account' });
 
   } catch (error) {
     console.log(error);
@@ -82,7 +82,7 @@ const login = async (request, response) => {
 
     // Check the user_type field to determine if it's a Google OAuth user
     if (user.verified === false) {
-      return response.status(400).json({ message: "Kindly verify your account, before login" });
+      return response.status(400).json({ message: "Hi, your account is un-verified!" });
     }
 
     // Match the password
@@ -118,15 +118,19 @@ const get_user = async (request, response) => {
   }
 };
 
-const verify_email = async (req, res) => {
+const verification = async (request, response) => {
   try {
-    const { token } = req.params;
+    const { token } = request.body;
+
+    if (!token) {
+      return response.status(400).json({ message: 'Provide a valid token' });
+    }
 
     // Find the user with the given verification token
     const user = await User.findOne({ verification_token: token });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid verification token' });
+      return response.status(400).json({ message: 'Invalid verification token' });
     }
 
     // Mark the user as verified
@@ -134,16 +138,57 @@ const verify_email = async (req, res) => {
     user.verification_token = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Email verified successfully, We've sent your account verification process to your mail" });
+    response.status(200).json({ message: "Email verified successfully, Proceed to login" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred' });
+    response.status(500).json({ message: 'Network Error' });
   }
 };
+
+const resend_verification_token = async (request, response) => {
+  const { email } = request.body;
+  try {
+
+    if (email === '') {
+      return response.status(400).json({ message: "Write your registered email!" });
+    };
+
+    const userExists = await User.findOne({
+      $and: [
+        { email: email },         // Check if the email matches
+        { user_type: "password" } // Check if the user_type is "password"
+      ]
+    });
+
+    if (!userExists) {
+      return response.status(400).json({ message: "Invalid mail! Use your registered email" })
+    };
+
+    // generate token
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+
+    // Send the verification email
+    await sendVerificationEmail(email, verificationToken);
+
+
+    userExists.verification_token = verificationToken;
+
+    await userExists.save();
+
+    response.status(200).json({ message: "We've delivered a new token to your mail" })
+
+
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ message: 'Network Error' });
+  }
+}
 
 export {
   register,
   login,
   get_user,
-  verify_email
+  verification,
+  resend_verification_token
 }
