@@ -1,8 +1,10 @@
 import Blog from "../model/Blog.js";
 import mongoose from "mongoose";
+import fs from 'fs';
 
 const create_blog = async (request, response) => {
-    const { title, content, author, category, cover } = request.body;
+    const { title, content, author, category } = request.body;
+    const { cover } = request.files;
 
     try {
         if (!title || !content || !author || !category || !cover) {
@@ -23,7 +25,8 @@ const create_blog = async (request, response) => {
 
 const update_blog = async (request, response) => {
     const id = request.params.id;
-    const { title, content, author, category, cover } = request.body;
+    const { title, content, author, category } = request.body;
+    const { cover } = request.files;
 
     // Validate that the provided ID is a valid MongoDB ObjectID
     if (!mongoose.isValidObjectId(id)) {
