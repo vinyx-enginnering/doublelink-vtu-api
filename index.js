@@ -31,6 +31,7 @@ import JambVending from "./route/education/JambPinVending.js";
 import TvPayment from "./route/TvPayment.js";
 import Settlement from "./route/Settlement.js";
 import Profile from "./route/Profile.js";
+import Blog from "./route/Blog.js";
 
 // initialize app
 const app = express();
@@ -71,6 +72,7 @@ app.use("/jamb", JambVending);
 app.use("/tv", TvPayment);
 app.use("/settlement", Settlement);
 app.use("/profile", Profile);
+app.use("/article", Blog);
 
 
 const PORT = process.env.PORT || 5000;
