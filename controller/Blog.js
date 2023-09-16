@@ -4,6 +4,7 @@ import fs from 'fs';
 
 const create_blog = async (request, response) => {
     const { title, content, author, category } = request.body;
+
     const { cover } = request.files;
 
     try {
@@ -14,7 +15,17 @@ const create_blog = async (request, response) => {
         // Split the comma-separated category string into an array
         const categories = category.split(',').map((cat) => cat.trim());
 
-        const article = new Blog({ title, content, author, categories, cover });
+        const article_item = { title, content, author, categories, cover: null };
+
+        if (cover) {
+            // Save the uploaded file
+            const coverPath = `uploads/${cover.name}`;
+            await cover.mv(coverPath);
+            article_item.cover = coverPath;
+
+        }
+
+        const article = new Blog(article_item);
         await article.save();
         response.status(201).json(article);
     } catch (error) {
