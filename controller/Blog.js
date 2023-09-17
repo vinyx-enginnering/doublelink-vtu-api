@@ -52,9 +52,19 @@ const update_blog = async (request, response) => {
         // Split the comma-separated category string into an array
         const categories = category.split(',').map((cat) => cat.trim());
 
+        const article_item = { title, content, author, categories, cover: null, updatedAt: Date.now() };
+
+        if (cover) {
+            // Save the uploaded file
+            const coverPath = `uploads/${cover.name}`;
+            await cover.mv(coverPath);
+            article_item.cover = coverPath;
+
+        };
+
         const article = await Blog.findByIdAndUpdate(
             id,
-            { title, content, author, categories, cover, updatedAt: Date.now() },
+            article_item,
             { new: true }
         );
 

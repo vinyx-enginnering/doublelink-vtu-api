@@ -7,6 +7,7 @@ const BlogSchema = new mongoose.Schema({
     title: String,
     content: String,
     categories: [String],
+    author: String,
     logs: []
 });
 
