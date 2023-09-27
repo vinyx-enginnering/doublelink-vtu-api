@@ -110,11 +110,10 @@ const airtime_topup = async (request, response) => {
             ]
         });
         // send response
-
         response.status(200).json(transaction);
     } catch (error) {
         console.error(error);
-        response.status(500).json({ message: "Service Error, Kindly try again.." });
+        response.status(500).json({ message: "Network Error, Kindly try again.." });
     }
 };
 
