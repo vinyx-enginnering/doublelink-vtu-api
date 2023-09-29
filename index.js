@@ -74,7 +74,7 @@ app.use("/tv", TvPayment);
 app.use("/settlement", Settlement);
 app.use("/profile", Profile);
 app.use("/article", Blog);
-app.use("/insurance", UInsure);
+app.use("/thirdpartymotor", UInsure);
 
 
 const PORT = process.env.PORT || 5000;

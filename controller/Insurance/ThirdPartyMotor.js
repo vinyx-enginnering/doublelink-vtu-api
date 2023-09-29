@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 
 
 const get_uinsure_motor_plans = async (request, response) => {
-    
+
     const url = `https://api-service.vtpass.com/api/service-variations?serviceID=ui-insure`;
 
     try {
@@ -29,7 +29,7 @@ const get_uinsure_motor_plans = async (request, response) => {
             response.status(400).json({ message: data.content.error });
             return;
         } else {
-            response.status(200).json(data);
+            response.status(200).json(data.content.variations);
         }
     } catch (error) {
         console.error(error);
@@ -38,14 +38,13 @@ const get_uinsure_motor_plans = async (request, response) => {
 };
 
 const purchase_uisure_plan = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = "https://vtpass.com/api/pay";
 
-    const { 
-        billersCode,
+    const {
         varation_code,
         amount,
         phone,
-        insured_name,
+        fullname,
         engine_number,
         chasis_number,
         plate_number,
@@ -55,7 +54,7 @@ const purchase_uisure_plan = async (request, response) => {
         year_of_make,
         contact_address
 
-     } = request.body;
+    } = request.body;
 
     try {
         // validate the request
@@ -88,13 +87,13 @@ const purchase_uisure_plan = async (request, response) => {
             .post(
                 url,
                 {
-                    serviceID,
-                    billersCode,
+                    serviceID: "ui-insure",
+                    billersCode: plate_number,
                     variation_code: varation_code && varation_code,
                     amount,
                     phone: phone,
                     request_id,
-                    Insured_Name: insured_name,
+                    Insured_Name: fullname,
                     Engine_Number: engine_number,
                     Chasis_Number: chasis_number,
                     Plate_Number: plate_number,
@@ -103,7 +102,6 @@ const purchase_uisure_plan = async (request, response) => {
                     Vehicle_Model: vehicle_model,
                     Year_of_Make: year_of_make,
                     Contact_Address: contact_address
-
                 },
                 {
                     headers: {
@@ -113,24 +111,29 @@ const purchase_uisure_plan = async (request, response) => {
                 }
             )
             .then((res) => res)
-            .catch((error) => console.log(error));
+            .catch((error) => {
+                if (error.response && error.response.data && error.response.data.message) {
+                    response.status(403).json({ message: `${error.response.data.message}` });
+                } else {
+                    response.status(403).json({ message: `${error.response.data.message}` });
+                }
+            });
 
         // check if there was an error
         if (
             (data && data.response_description === "TRANSACTION FAILED") ||
             data.response_description === "INVALID ARGUMENTS" || !data
-            || data.response_description === "LOW WALLET BALANCE"
+            || data.response_description === "LOW WALLET BALANCE" || data.code === "ERR_BAD_REQUEST"
         ) {
             response.status(400).json({
-                message: data.content.error || data.response_description,
+                message: data.content.error || data.response_description || data.response.data.message,
             });
             return;
         }
 
-        console.log(data);
 
         // calculate cashback
-        const cash_back = 10;
+        const cash_back = 100;
 
         // debit wallet
         await Wallet.findOneAndUpdate(
