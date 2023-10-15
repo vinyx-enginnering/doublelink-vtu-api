@@ -91,8 +91,6 @@ const airtime_topup = async (request, response) => {
             { $inc: { cashback: parseInt(cash_back) } }
         );
 
-        console.log(data)
-
         // create transaction
         const transaction = await Transaction.create({
             amount: parseInt(amount),
