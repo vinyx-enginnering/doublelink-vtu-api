@@ -5,9 +5,9 @@ import User from "../../model/User.js";
 const get_phonebooks = async (request, response) => {
     try {
         // Fetch all phonebooks
-        const phonebooks = await PhoneBook.find().sort({ createdAt: -1 });
+        const phonebooks = await PhoneBook.find({ user: request.user }).sort({ createdAt: -1 });
 
-        // Check if phonebooks were found
+        // Check if phonebooks were found  8
         if (phonebooks.length > 0) {
             response.status(200).json({ phonebooks });
         } else {
