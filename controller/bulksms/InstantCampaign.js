@@ -57,7 +57,8 @@ const send_bulk_messages = async (request, response) => {
                 { customer: request.user._id },
                 { $inc: { cashback: parseInt(cash_back) } }
             );
-
+            
+            // Record the Transaction
             const transaction = await Transaction.create({
                 amount: parseInt(charge),
                 narration: `You campaigned sms to ${recepients.length} numbers`,
@@ -67,6 +68,9 @@ const send_bulk_messages = async (request, response) => {
                 commission: cash_back,
                 type: "Payable",
             });
+
+            // Record the campaign
+            
 
             // send response to client
             response.status(201).json(transaction);

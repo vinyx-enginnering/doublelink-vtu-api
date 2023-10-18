@@ -1,5 +1,5 @@
 import PhoneBook from "../../model/bulksms/Phonebook.js";
-import User from "../../model/User.js";
+import mongoose from "mongoose";
 
 
 const get_phonebooks = async (request, response) => {
@@ -9,7 +9,7 @@ const get_phonebooks = async (request, response) => {
 
         // Check if phonebooks were found  8
         if (phonebooks.length > 0) {
-            response.status(200).json({ phonebooks });
+            response.status(200).json(phonebooks);
         } else {
             response.status(404).json({ message: 'No phonebooks found.' });
         }
@@ -24,12 +24,17 @@ const get_phonebook = async (request, response) => {
         const phonebookId = request.params.id;
         const user = request.user;
 
+        // Validate that the provided ID is a valid MongoDB ObjectID
+        if (!mongoose.isValidObjectId(phonebookId)) {
+            return response.status(400).json({ message: 'Invalid ID' });
+        };
+
         // Find the phonebook by ID
         const phonebook = await PhoneBook.findOne({ _id: phonebookId, user: user });
 
         // Check if the phonebook with the specified ID was found
         if (phonebook) {
-            response.status(200).json({ phonebook });
+            response.status(200).json(phonebook);
         } else {
             response.status(404).json({ message: 'Phonebook not found.' });
         }
@@ -70,7 +75,7 @@ const create_phonebook = async (request, response) => {
 
         if (!country || country === "") {
             errors.push('Country cannot be empty.');
-        }
+        };
 
         // If there are validation errors, return a 400 "Bad Request" response
         if (errors.length > 0) {
@@ -84,7 +89,7 @@ const create_phonebook = async (request, response) => {
             contacts: validContacts,
             country_code,
             country,
-            user, // Set the user field
+            user: user._id, // Set the user field
         });
 
         // Set total_contacts if the contacts parameter is not empty
@@ -99,12 +104,12 @@ const create_phonebook = async (request, response) => {
         let responseMessage = "";
 
         if (validContacts.length > 0 || invalidContacts.length > 0) {
-            responseMessage = `Your phonebook has been created successfully with ${validContacts.length} valid contacts and ${invalidContacts.length} invalid contacts. Kindly review your invalid contacts and update your phonebook.`;
+            responseMessage = `Your phonebook has been created successfully with ${validContacts.length} valid contacts and ${invalidContacts.length} invalid contacts. Kindly review your invalid contacts, if there are any and update your phonebook accordingly.`;
         } else {
             responseMessage = `Your phonebook has been created successfully.`;
         };
 
-        response.status(201).json({ message: responseMessage, phonebook });
+        response.status(201).json({ message: responseMessage, invalidContacts });
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: `Network Error: ${error}` });
@@ -128,6 +133,11 @@ const update_phonebook = async (request, response) => {
 
         const validContacts = contactArray.filter((contact) => /^\d{10}$/.test(contact));
         const invalidContacts = contactArray.filter((contact) => !/^\d{10}$/.test(contact));
+
+        // Validate that the provided ID is a valid MongoDB ObjectID
+        if (!mongoose.isValidObjectId(phonebookId)) {
+            return response.status(400).json({ message: 'Invalid ID' });
+        };
 
         // Check for empty or invalid title, country_code, and country
         const errors = [];
@@ -198,6 +208,11 @@ const delete_phonebook = async (request, response) => {
 
         // Find the existing phonebook by ID
         const existingPhonebook = await PhoneBook.findOne({ _id: phonebookId, user: user });
+
+        // Validate that the provided ID is a valid MongoDB ObjectID
+        if (!mongoose.isValidObjectId(phonebookId)) {
+            return response.status(400).json({ message: 'Invalid ID' });
+        };
 
         // Check if the phonebook with the specified ID was found
         if (!existingPhonebook) {
