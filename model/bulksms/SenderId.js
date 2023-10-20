@@ -18,17 +18,13 @@ const senderIdSchema = mongoose.Schema({
     },
     usecase: {
         type: String,
-        enum: ['marketing', 'promotion', 'notification'],
-        default: 'marketing',
-    },
-    sample: {
-        type: String,
         required: true
     },
     company: {
         type: String,
         required: true,
     },
+
     status: {
         type: String,
         enum: ['pending', 'declined', 'approved'],

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const passwordChangeLogSchema = new mongoose.Schema({
+const passwordChangeLogSchema = mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     timestamp: { type: Date, default: Date.now },
 });

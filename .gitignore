@@ -2,3 +2,7 @@ node_modules
 yarn.lock
 uploads
 .env
+.gitignore
+*.env
+yarn-error.log
+package-lock.json

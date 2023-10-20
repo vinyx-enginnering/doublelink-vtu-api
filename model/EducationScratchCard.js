@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import timestamps from "mongoose-timestamp";
 
-const EducationScratchCard = new mongoose.Schema({
+const EducationScratchCard = mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

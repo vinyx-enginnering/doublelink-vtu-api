@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import timestamp from "mongoose-timestamp";
 
-const RechargeCardSchema = new mongoose.Schema({
+const RechargeCardSchema = mongoose.Schema({
     pin: {
         type: String,
         required: true
