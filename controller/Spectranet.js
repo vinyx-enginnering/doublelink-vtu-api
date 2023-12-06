@@ -5,7 +5,7 @@ import moment from "moment-timezone";
 
 
 // Query Spectranet Data Bundles
-const get_spectranet_bundle = async (request, response) => {
+const get_spectranet_bundle = async (_, response) => {
     const url = `https://vtpass.com/api/service-variations?serviceID=spectranet`;
 
     try {
@@ -46,7 +46,7 @@ const spectranet_data = async (request, response) => {
             response.status(400).json({ message: "Kindly fill in the empty fields" });
             return;
         }
-        // generate a mtn request id
+        // generate a request id
         const random = (Math.random() + 1).toString(36).substring(7).toUpperCase();
 
         const now = moment().tz("Africa/Lagos");

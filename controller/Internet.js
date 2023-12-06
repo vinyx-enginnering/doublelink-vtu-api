@@ -107,7 +107,6 @@ const data_bundle = async (request, response) => {
             data.response_description === "INVALID ARGUMENTS" ||
             data.response_description === 'LOW WALLET BALANCE'
         ) {
-            console.log(data);
             response.status(400).json({
                 message: `${data.response_description}`,
             });

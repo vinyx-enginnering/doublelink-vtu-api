@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import timestamps from "mongoose-timestamp";
 
-const TransactionPinSchema = new mongoose.Schema({
+const TransactionPinSchema = mongoose.Schema({
     pin: {
         type: String,
         required: true

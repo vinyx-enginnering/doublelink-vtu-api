@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import timestamps from "mongoose-timestamp";
 
 
-const ProfileSchema = new mongoose.Schema({
+const ProfileSchema = mongoose.Schema({
     // Profile fields
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: { type: String, enum: ['personal', 'business'], required: true },
