@@ -4,7 +4,7 @@ import axios from "axios";
 import Transaction from "../model/Transaction.js";
 import Wallet from "../model/Wallet.js";
 import Settlement from "../model/Settlement.js";
-import { v4 as uuid} from "uuid";
+import { v4 as uuid } from "uuid";
 
 // find my accounts
 const my_accounts = async (request, response) => {
@@ -81,6 +81,13 @@ const confirm_bank_transfer = async (request, response) => {
             email: request.body.eventData.customer.email,
         });
 
+        console.log(user)
+
+
+        if (!user) {
+            return response.status(404).json({ message: 'User not found..' })
+        }
+
         // login monnify & generate a request token
         const { data } = await axios
             .post(
@@ -129,13 +136,12 @@ const confirm_bank_transfer = async (request, response) => {
                 // send a transaction notification
                 const transaction = await Transaction.create({
                     amount: balance,
-                    narration: `We have paid ${balance} to your wallet`,
+                    narration: `We have paid ${balance} Naira to your wallet`,
                     referrence_id: transactionReference,
                     vat: vat,
                     status: "successful",
                     type: "receivable",
                     user: user,
-                    logs: [data],
                 });
 
                 // send response

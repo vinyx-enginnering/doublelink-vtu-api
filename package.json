@@ -10,7 +10,7 @@
   "scripts": {
     "build": "yarn install",
     "start": "node index.js",
-    "develop": "nodemon index.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
