@@ -124,14 +124,14 @@ const confirm_bank_transfer = async (request, response) => {
 
             // if the transaction is successfully PAID
             if (data.responseBody.paymentStatus === 'PAID') {
-                const amount = data.responseBody.amountPaid;
+                const amount = parseFloat(data.responseBody.amountPaid);
                 const vat = (amount * 2) / 100;
                 const balance = amount - vat;
 
                 // fund the custmomer wallet
                 await Wallet.findOneAndUpdate(
                     { user: user._id },
-                    { $inc: { balance: parseInt(balance) } }
+                    { $inc: { balance: parseFloat(balance) } }
                 );
                 // send a transaction notification
                 const transaction = await Transaction.create({
