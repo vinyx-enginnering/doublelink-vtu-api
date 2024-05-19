@@ -81,7 +81,7 @@ const confirm_bank_transfer = async (request, response) => {
             email: request.body.eventData.customer.email,
         });
 
-        console.log(user)
+
 
 
         if (!user) {
@@ -120,7 +120,7 @@ const confirm_bank_transfer = async (request, response) => {
                 .then((res) => res)
                 .catch((err) => console.log(err));
 
-            console.log("data log", data);
+          
 
             // if the transaction is successfully PAID
             if (data.responseBody.paymentStatus === 'PAID') {
