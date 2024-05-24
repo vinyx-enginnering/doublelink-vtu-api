@@ -26,7 +26,7 @@ const get_data_bundles = async (request, response) => {
         response.status(200).json(data.content.varations);
     } catch (error) {
         console.error(error);
-        response.status(500).json({ message: "Server Error, Kindly try again.." });
+        response.status(500).json({ message: "Service Error, Check your Internet and try again.." });
     }
 };
 
@@ -153,7 +153,102 @@ const data_bundle = async (request, response) => {
     }
 };
 
+const buy_data_instant = async (request, response) => {
+    const url = "https://vtpass.com/api/pay";
+
+    const { serviceId, billersCode, varation_code, amount, phone } = request.body;
+    const serviceID = `${serviceId}`;
+
+    try {
+        // validate the request
+        if (
+            serviceID === "" ||
+            amount === "" ||
+            phone === "" ||
+            billersCode === ""
+        ) {
+            response.status(400).json({ message: "Kindly fill in the empty fields" });
+            return;
+        };
+
+        // check if the number has the valid format
+        if (phone.length > 11 || phone.length < 11) {
+            response.status(400).json({ message: "Invalid Mobile number format, kindly use 11 digit format" });
+            return;
+        };
+
+        const number_format = `${phone}`
+        const mobile = parseInt(number_format);
+
+        // generate a mtn request id
+        const random = (Math.random() + 1).toString(36).substring(7).toUpperCase();
+
+        const now = moment().tz("Africa/Lagos");
+
+        // Format the date and time as YYYYMMDDHHII
+        const requestID = now.format("YYYYMMDDHHmm");
+        const request_id = `${requestID}${random}`;
+
+        // make api call
+        const { data } = await axios
+            .post(
+                url,
+                {
+                    serviceID,
+                    billersCode,
+                    variation_code: varation_code,
+                    amount,
+                    phone: mobile,
+                    request_id,
+                },
+                {
+                    headers: {
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
+                    },
+                }
+            )
+            .then((res) => res)
+            .catch((error) => console.log(error));
+
+        // check if there was an error
+        if (
+            (data && data.response_description === "TRANSACTION FAILED") ||
+            data.response_description === "INVALID ARGUMENTS" ||
+            data.response_description === 'LOW WALLET BALANCE'
+        ) {
+            response.status(400).json({
+                message: `${data.response_description}`,
+            });
+            return;
+        }
+
+
+        // create transaction
+        const transaction = {
+            amount: parseInt(amount),
+            narration: `${data.content.transactions.product_name}`,
+            referrence_id: data.requestId,
+            status: data.content.transactions.status,
+            type: "Payable",
+            logs: [
+                {
+                    phone_number: `${phone}`,
+                    network: `${serviceID}`,
+                }
+            ]
+        };
+        // send response
+
+        response.status(200).json(transaction);
+    } catch (error) {
+        console.error(error);
+        response.status(500).json({ message: "Service Error, Kindly try again.." });
+    }
+}
+
 export {
     get_data_bundles,
-    data_bundle
+    data_bundle,
+    buy_data_instant
 }

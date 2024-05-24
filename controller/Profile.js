@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import User from '../model/User.js';
 import generateToken from '../utility/generateToken.js';
 
+
 // Create or update a profile
 const saveProfile = async (request, response) => {
     const {
@@ -121,7 +122,11 @@ const editUserPassword = async (request, response) => {
         console.error(error);
         response.status(500).json({ message: 'Network Error' });
     }
-}
+};
+
+const getProfile = async (request, response) =>{
+    
+} 
 
 
 export {
