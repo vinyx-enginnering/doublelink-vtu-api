@@ -40,9 +40,12 @@ const PasswordResetRequest = async (request, response) => {
             to: email,
             subject: "Password Reset Request",
             html: `
-                <p>We received a request to reset your password.</p>
-                <p>Your verification code is: <strong>${resetToken}</strong></p>
-                <p>Please use this code to reset your password.</p>
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <p>We received a request to reset your password.</p>
+                    <p style="font-weight: bold; color: #007bff;">Your verification code is: <span style="background-color: #f0f0f0; padding: 3px;">${resetToken}</span></p>
+                    <p>Visit the link here and use the code above <a href='https://doublelinkonline.com.ng/change-password' style="color: #007bff;">Change Password</a></p>
+                    <p>Please use this code to reset your password.</p>
+                </div>
                 `,
         };
 
@@ -65,7 +68,7 @@ const PasswordReset = async (request, response) => {
             return response.status(400).json({ message: "Invalid submission! check your credentials and try again" });
         };
 
-        if(password !== confirmPassword) {
+        if (password !== confirmPassword) {
             return response.status(400).json({ message: "Invalid submission! passwords dont match" });
         }
 
