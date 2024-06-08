@@ -53,7 +53,7 @@ const register = async (request, response) => {
     await Wallet.create({ user: user._id });
 
     // Send the verification email
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, verificationToken, user);
 
     response.status(201).json({ message: 'Your account is created successfully! We have sent you an email to verify your account' });
 

@@ -36,16 +36,28 @@ const PasswordResetRequest = async (request, response) => {
 
         // Send reset token
         const mailOptions = {
-            from: "Doublelink <onboarding@doublelinkng.com>",
+            from: "Doublelink Online <no-reply@doublelinkng.com>",
             to: email,
-            subject: "Password Reset Request",
+            subject: `Hello ${user.username} | Reset your account password`,
             html: `
-                <div style="font-family: Arial, sans-serif; color: #333;">
-                    <p>We received a request to reset your password.</p>
-                    <p style="font-weight: bold; color: #007bff;">Your verification code is: <span style="background-color: #f0f0f0; padding: 3px;">${resetToken}</span></p>
-                    <p>Visit the link here and use the code above <a href='https://doublelinkonline.com.ng/change-password' style="color: #007bff;">Change Password</a></p>
-                    <p>Please use this code to reset your password.</p>
-                </div>
+                <div style="background-color: #f3f3f3; padding: 1px; text-align: center;">
+                    <div style="display: inline-block; background-color: #fff; font-size: 20px; border-radius: 10px; text-align: left;">
+                        <div style="background-color: #5e17eb; color: white; padding: 10px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                            <h2 style="margin: 0;">Doublelink <span>Online</span></h2>
+                        </div>
+                        <p style="margin-left: 10px">Hello, ${user.username}</p>
+                        <p style="padding: 10px 10px;">We received a request to reset your password.</p>
+                        <p style="padding: 10px; font-size: 30px; font-weight: bold; color: #007bff;">Your reset code is: <span style="background-color: #f0f0f0; padding: 3px;">${resetToken}</span></p>
+                        <p style="padding: 10px;">Visit the link here and use the code above <a href='https://doublelinkonline.com.ng/change-password' style="color: #007bff;">Change Password</a></p>
+                        <p style="padding: 10px;">Please use this code to reset your password.</p>
+
+                        <div style="background-color: #737373; color: #f1f1f1; padding: 10px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                            <p style="margin: 0; font-size: 15px; text-align: center;">© 2024 Doublelink Telecommunication Limited. All Rights Reserved, Suite 32, Premier Plaza, Otta</p>
+                            <p style="margin: 0; font-size: 15px; text-align: center;">This email was sent to ${user.email}.</p>
+
+                        </div>
+                    </div>
+                    </div>
                 `,
         };
 
