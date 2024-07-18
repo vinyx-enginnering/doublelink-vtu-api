@@ -3,13 +3,13 @@ import axios from "axios";
 
 
 const request_sender_id = async (request, response) => {
-    const { title, usecase, company, country } = request.body;
+    const { title, usecase, company } = request.body;
     const user = request.user._id;
     const url = `https://api.ng.termii.com/api/sender-id/request`
     try {
 
         // Validate the user request
-        if (!title || title == "" || !usecase || usecase == "" || !company || company == "" || !country || country == "") {
+        if (!title || title == "" || !usecase || usecase == "" || !company || company == "") {
             response.status(400).json({ message: "Invalid Request! Kindly check your request and try again..." });
             return;
         };
@@ -20,7 +20,15 @@ const request_sender_id = async (request, response) => {
             "sender_id": title,
             "usecase": usecase,
             "company": company,
-            "country": country
+            "country": "Nigeria"
+        };
+
+        // check if the requested ID already exisit
+        const IdExist = await SenderId.findOne({ title: title });
+
+        if (IdExist) {
+            response.status(400).json({ message: "Invalid request! That ID Already Exists" });
+            return;
         };
 
         // Attempt to request a new sender id
@@ -29,42 +37,58 @@ const request_sender_id = async (request, response) => {
                 "Content-Type": "application/json"
             }
         }).then(response => response)
-            .catch(error => console.error(error));
+            .catch(error => error.response);
 
-        // Validate the termii response
-        if (data.code !== "ok" || !data || !data.code) {
-            response.status(400).json({ message: "Invalid Request! Something went wrong in your request, kindly try again!" });
+        // Validate the termii error & response
+        if (data.errors && data.errors.sender_id) {
+            response.status(400).json({ message: `${data.errors.sender_id[0]}` })
             return;
         };
+
+        if (data.errors && data.errors.usecase) {
+            response.status(400).json({ message: `${data.errors.usecase[0]}` })
+            return;
+        };
+
 
         // Log the request
         await SenderId.create({
             title,
             usecase,
             company,
-            country,
             user
         });
 
         // Responde
-        response.status(200).json({ message: data.message });
+        response.status(201).json({ message: data.message });
 
 
+    } catch (error) {
+
+        console.error(error);
+        response.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
+    };
+
+}
+
+
+const get_my_verified_sender_ids = async (request, response) => {
+    const user = request.user._id;
+    try {
+        const sender_ids = await SenderId.find({ user: user, status: "active" }).sort({ createdAt: -1 });
+
+        response.status(200).json(sender_ids);
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: `${error}` });
     }
 };
 
+const get_all_my_sender_ids = async (request, response) => {
 
-const get_my_sender_ids = async (request, response) => {
     const user = request.user._id;
     try {
-        const sender_ids = await SenderId.find({ user: user, status: "approved" }).sort({ createdAt: -1 });
-
-        if (!sender_ids) {
-            return response.status(400).json({ message: "Something went wrong..." });
-        };
+        const sender_ids = await SenderId.find({ user: user }).sort({ createdAt: -1 });
 
         response.status(200).json(sender_ids);
     } catch (error) {
@@ -76,5 +100,6 @@ const get_my_sender_ids = async (request, response) => {
 
 export {
     request_sender_id,
-    get_my_sender_ids
+    get_all_my_sender_ids,
+    get_my_verified_sender_ids
 }

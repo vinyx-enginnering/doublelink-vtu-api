@@ -6,7 +6,7 @@ import Transaction from "../model/Transaction.js";
 const get_tv_plans = async (request, response) => {
     const biller = request.params.biller;
 
-    const url = `https://vtpass.com/api/service-variations?serviceID=${biller}`;
+    const url = `https://api-service.vtpass.com/api/service-variations?serviceID=${biller}`;
 
 
     try {
@@ -32,7 +32,7 @@ const get_tv_plans = async (request, response) => {
 
 const verify_tv_details = async (request, response) => {
     const { number } = request.body;
-    const url = `https://vtpass.com/api/merchant-verify`;
+    const url = `https://api-service.vtpass.com/api/merchant-verify`;
 
     try {
         // validate the request
@@ -72,7 +72,7 @@ const verify_tv_details = async (request, response) => {
 };
 
 const purchase_tv_plan = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { billersCode, varation_code, amount, subscription_type, serviceID } = request.body;
 
@@ -145,7 +145,7 @@ const purchase_tv_plan = async (request, response) => {
         console.log(data);
 
         // calculate cashback
-        const cash_back = 10;
+        const cash_back = (amount * 1) / 100;
 
         // debit wallet
         await Wallet.findOneAndUpdate(

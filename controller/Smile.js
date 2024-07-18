@@ -6,7 +6,7 @@ import moment from "moment-timezone";
 // Query Smile Plans
 // Query Smile Data Bundle
 const get_smile_bundle = async (request, response) => {
-    const url = `https://sandbox.vtpass.com/api/service-variations?serviceID=smile-direct`;
+    const url = `https://api-service.vtpass.com/api/service-variations?serviceID=smile-direct`;
 
     try {
         // make request
@@ -31,7 +31,7 @@ const get_smile_bundle = async (request, response) => {
 // Verify Smile Customer Mobile Number
 const verify_smile_number = async (request, response) => {
     const { phone } = request.body;
-    const url = `https://sandbox.vtpass.com/api/merchant-verify/smile/phone`;
+    const url = `https://api-service.vtpass.com/api/merchant-verify/smile/phone`;
 
     try {
         // validate the request
@@ -72,7 +72,7 @@ const verify_smile_number = async (request, response) => {
 
 // Purchase Smile Data
 const smile_data = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { billersCode, varation_code, amount, phone } = request.body;
     const serviceID = `smile-direct`;

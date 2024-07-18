@@ -45,22 +45,22 @@ const send_bulk_messages = async (request, response) => {
         console.log(data);
         // check if messages have been sent
         if (data.message === "Successfully Sent") {
-            const cash_back = 100;
+            const cash_back = 0;
 
             // debit the wallet
             await Wallet.findOneAndUpdate(
                 { customer: request.user._id },
-                { $inc: { balance: -parseInt(charge) } }
+                { $inc: { balance: -parseFloat(charge) } }
             );
 
             await Wallet.findOneAndUpdate(
                 { customer: request.user._id },
-                { $inc: { cashback: parseInt(cash_back) } }
+                { $inc: { cashback: parseFloat(cash_back) } }
             );
             
             // Record the Transaction
             const transaction = await Transaction.create({
-                amount: parseInt(charge),
+                amount: parseFloat(charge),
                 narration: `You campaigned sms to ${recepients.length} numbers`,
                 referrence_id: data.requestId,
                 status: "Success",
@@ -71,7 +71,6 @@ const send_bulk_messages = async (request, response) => {
 
             // Record the campaign
             
-
             // send response to client
             response.status(201).json(transaction);
         }

@@ -6,7 +6,7 @@ import moment from "moment-timezone";
 
 // Query Spectranet Data Bundles
 const get_spectranet_bundle = async (_, response) => {
-    const url = `https://vtpass.com/api/service-variations?serviceID=spectranet`;
+    const url = `https://api-service.vtpass.com/api/service-variations?serviceID=spectranet`;
 
     try {
         // make request
@@ -30,7 +30,7 @@ const get_spectranet_bundle = async (_, response) => {
 
 // Purchase Spectranet Data
 const spectranet_data = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { billersCode, varation_code, amount, phone } = request.body;
     const serviceID = `spectranet`;
@@ -102,7 +102,7 @@ const spectranet_data = async (request, response) => {
         }
 
         // calculate cashback
-        const cash_back = 10;
+        const cash_back = (amount * 2) / 100;
 
         // debit wallet
         await Wallet.findOneAndUpdate(

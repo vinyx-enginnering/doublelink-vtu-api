@@ -8,7 +8,7 @@ import moment from 'moment-timezone';
 const get_data_bundles = async (request, response) => {
     const { serviceId } = request.params;
 
-    const url = `https://vtpass.com/api/service-variations?serviceID=${serviceId}`;
+    const url = `https://api-service.vtpass.com/api/service-variations?serviceID=${serviceId}`;
 
     try {
         // make request
@@ -32,7 +32,7 @@ const get_data_bundles = async (request, response) => {
 
 // Purchase Data Bundle
 const data_bundle = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { serviceId, billersCode, varation_code, amount, phone } = request.body;
     const serviceID = `${serviceId}`;
@@ -154,7 +154,7 @@ const data_bundle = async (request, response) => {
 };
 
 const buy_data_instant = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { serviceId, billersCode, varation_code, amount, phone } = request.body;
     const serviceID = `${serviceId}`;

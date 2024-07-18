@@ -1,5 +1,6 @@
 import PhoneBook from "../../model/bulksms/Phonebook.js";
 import mongoose from "mongoose";
+import generateSlug from "../../utility/generateSlug.js";
 
 
 const get_phonebooks = async (request, response) => {
@@ -7,12 +8,8 @@ const get_phonebooks = async (request, response) => {
         // Fetch all phonebooks
         const phonebooks = await PhoneBook.find({ user: request.user }).sort({ createdAt: -1 });
 
-        // Check if phonebooks were found  8
-        if (phonebooks.length > 0) {
-            response.status(200).json(phonebooks);
-        } else {
-            response.status(404).json({ message: 'No phonebooks found.' });
-        }
+        // Check if phonebooks were found
+        response.status(200).json(phonebooks)
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: `Network Error: ${error}` });
@@ -47,10 +44,22 @@ const get_phonebook = async (request, response) => {
 const create_phonebook = async (request, response) => {
     try {
         // Extract the data from the request body
-        const { title, contacts, country_code, country } = request.body;
+        const { name, description, contacts } = request.body;
         const user = request.user;
 
         let contactArray = [];
+
+        // Check for empty or invalid title, country_code, and country
+        if (!name || name === "") {
+            response.status(400).json({ message: 'Invalid request! Phonebook Name can not be empty..' })
+            return;
+        };
+
+        if (!contacts || contacts === "") {
+            response.status(400).json({ message: 'Invalid request! Kindly add numbers to your phonebook...' })
+            return;
+        };
+
 
         if (contacts && contacts !== "") {
             contactArray = contacts.split(',').map((contact) => {
@@ -59,36 +68,23 @@ const create_phonebook = async (request, response) => {
             });
         }
 
-        const validContacts = contactArray.filter((contact) => /^\d{10}$/.test(contact));
-        const invalidContacts = contactArray.filter((contact) => !/^\d{10}$/.test(contact));
+        const validContacts = contactArray.filter((contact) => /^\d{11}$/.test(contact));
+        const invalidContacts = contactArray.filter((contact) => !/^\d{11}$/.test(contact));
+        // Check if the slug exist
+        const slug = generateSlug(name);
+        const phonebookExist = await PhoneBook.findOne({ slug: slug });
 
-        // Check for empty or invalid title, country_code, and country
-        const errors = [];
-
-        if (!title || title === "") {
-            errors.push('Title cannot be empty.');
-        }
-
-        if (!country_code || country_code === "") {
-            errors.push('Country code cannot be empty.');
-        }
-
-        if (!country || country === "") {
-            errors.push('Country cannot be empty.');
-        };
-
-        // If there are validation errors, return a 400 "Bad Request" response
-        if (errors.length > 0) {
-            response.status(400).json({ message: 'Invalid request. Please make the following corrections:', errors });
+        if (phonebookExist) {
+            response.status(400).json({ message: 'Invalid request! Phonebook with that name already exist...' });
             return;
-        }
+        };
 
         // Create a new phonebook with the valid contacts
         const phonebook = new PhoneBook({
-            title,
+            name,
+            slug: slug,
             contacts: validContacts,
-            country_code,
-            country,
+            description,
             user: user._id, // Set the user field
         });
 
@@ -109,20 +105,33 @@ const create_phonebook = async (request, response) => {
             responseMessage = `Your phonebook has been created successfully.`;
         };
 
-        response.status(201).json({ message: responseMessage, invalidContacts });
+        response.status(201).json({ message: responseMessage, contacts: invalidContacts });
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: `Network Error: ${error}` });
     }
 };
 
+
 const update_phonebook = async (request, response) => {
     try {
         const phonebookId = request.params.id;
-        const { title, contacts, country_code, country } = request.body;
+        const { name, description, contacts } = request.body;
         const user = request.user;
 
         let contactArray = [];
+        const slug = generateSlug(name);
+
+        // Check for empty or invalid request submissions
+        if (!name || name === "") {
+            response.status(400).json({ message: 'Invalid request! Phonebook Name can not be empty..' })
+            return;
+        };
+
+        if (!contacts || contacts === "") {
+            response.status(400).json({ message: 'Invalid request! Kindly add numbers to your phonebook...' })
+            return;
+        };
 
         if (contacts && contacts !== "") {
             contactArray = contacts.split(',').map((contact) => {
@@ -131,34 +140,13 @@ const update_phonebook = async (request, response) => {
             });
         };
 
-        const validContacts = contactArray.filter((contact) => /^\d{10}$/.test(contact));
-        const invalidContacts = contactArray.filter((contact) => !/^\d{10}$/.test(contact));
+        const validContacts = contactArray.filter((contact) => /^\d{11}$/.test(contact));
+        const invalidContacts = contactArray.filter((contact) => !/^\d{11}$/.test(contact));
 
         // Validate that the provided ID is a valid MongoDB ObjectID
         if (!mongoose.isValidObjectId(phonebookId)) {
             return response.status(400).json({ message: 'Invalid ID' });
         };
-
-        // Check for empty or invalid title, country_code, and country
-        const errors = [];
-
-        if (!title || title === "") {
-            errors.push('Title cannot be empty.');
-        }
-
-        if (!country_code || country_code === "") {
-            errors.push('Country code cannot be empty.');
-        }
-
-        if (!country || country === "") {
-            errors.push('Country cannot be empty.');
-        }
-
-        // If there are validation errors, return a 400 "Bad Request" response
-        if (errors.length > 0) {
-            response.status(400).json({ message: 'Invalid request. Please make the following corrections:', errors });
-            return;
-        }
 
         // Find the existing phonebook by ID
         const existingPhonebook = await PhoneBook.findOne({ _id: phonebookId, user: user });
@@ -169,12 +157,20 @@ const update_phonebook = async (request, response) => {
             return;
         }
 
-        // Ensure that the user has permission to update the phonebook (e.g., ownership check)
+        // Ensure the new phonebook name or slug doesn't already exist, excluding the current record
+        const isExisting = await PhoneBook.findOne({
+            $or: [{ name }, { slug }],
+            _id: { $ne: phonebookId }
+        });
+
+        if (isExisting) {
+            response.status(400).json({ message: 'Phonebook with the same name or slug already exists' });
+            return;
+        };
 
         // Update the phonebook details
-        existingPhonebook.title = title;
-        existingPhonebook.country_code = country_code;
-        existingPhonebook.country = country;
+        existingPhonebook.name = name;
+        existingPhonebook.description = description;
 
         // Update contacts and total_contacts if the contacts parameter is not empty
         if (validContacts.length > 0) {
@@ -194,7 +190,7 @@ const update_phonebook = async (request, response) => {
             responseMessage = `Your phonebook has been updated successfully.`;
         };
 
-        response.status(200).json({ message: responseMessage, invalidContacts });
+        response.status(200).json({ message: responseMessage, contacts: invalidContacts });
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: `Network Error: ${error}` });

@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 
 // Purchase Airtime
 const airtime_topup = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { serviceID, amount, phone } = request.body;
     console.log({ serviceID, amount, phone })
@@ -118,7 +118,7 @@ const airtime_topup = async (request, response) => {
 
 
 const airtime_instant_topup = async (request, response) => {
-    const url = "https://vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
 
     const { serviceID, amount, phone } = request.body;
   

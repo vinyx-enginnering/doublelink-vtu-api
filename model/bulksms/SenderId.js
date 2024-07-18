@@ -27,12 +27,12 @@ const senderIdSchema = mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['pending', 'declined', 'approved'],
+        enum: ['pending', 'declined', 'active'],
         default: 'pending',
     },
     country: {
         type: String,
-        required: true
+        default: 'Nigeria'
     },
 });
 

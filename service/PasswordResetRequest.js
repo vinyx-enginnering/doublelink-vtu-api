@@ -23,6 +23,7 @@ const PasswordResetRequest = async (request, response) => {
 
         // verify the email is linked to an account
         const user = await User.findOne({ email });
+        
         if (!user) {
             return response.status(404).json({ message: "No user found with this email" });
         }
@@ -42,7 +43,7 @@ const PasswordResetRequest = async (request, response) => {
             html: `
                 <div style="background-color: #f3f3f3; padding: 1px; text-align: center;">
                     <div style="display: inline-block; background-color: #fff; font-size: 20px; border-radius: 10px; text-align: left;">
-                        <div style="background-color: #5e17eb; color: white; padding: 10px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                        <div style="background-color: #5e17eb; color: white; padding: 10px;">
                             <h2 style="margin: 0;">Doublelink <span>Online</span></h2>
                         </div>
                         <p style="margin-left: 10px">Hello, ${user.username}</p>
@@ -51,7 +52,7 @@ const PasswordResetRequest = async (request, response) => {
                         <p style="padding: 10px;">Visit the link here and use the code above <a href='https://doublelinkonline.com.ng/change-password' style="color: #007bff;">Change Password</a></p>
                         <p style="padding: 10px;">Please use this code to reset your password.</p>
 
-                        <div style="background-color: #737373; color: #f1f1f1; padding: 10px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                        <div style="background-color: #737373; color: #f1f1f1; padding: 10px;">
                             <p style="margin: 0; font-size: 15px; text-align: center;">© 2024 Doublelink Telecommunication Limited. All Rights Reserved, Suite 32, Premier Plaza, Otta</p>
                             <p style="margin: 0; font-size: 15px; text-align: center;">This email was sent to ${user.email}.</p>
 

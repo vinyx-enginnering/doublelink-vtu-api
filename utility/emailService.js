@@ -20,7 +20,7 @@ const sendVerificationEmail = async (email, verificationToken, user) => {
         html: `
                     <div style="background-color: #f3f3f3; padding: 1px; text-align: center;">
             <div style="display: inline-block; background-color: #fff; font-size: 20px; border-radius: 10px; text-align: left;">
-                <div style="background-color: #5e17eb; color: white; padding: 10px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                <div style="background-color: #5e17eb; color: white; padding: 10px;">
                     <h2 style="margin: 0;">Doublelink <span>Online</span></h2>
                 </div>
                 <p style="margin-left: 10px">Hello, ${user.username}</p>
@@ -30,7 +30,7 @@ const sendVerificationEmail = async (email, verificationToken, user) => {
                 <a href="https://doublelinkonline.com.ng/verify-email" style="display: inline-block; background-color: #5e17eb; color: white; text-decoration: none; padding: 10px 20px; margin-bottom: 10px; margin-left: 10px;">Verify Email</a>
                 <p style="padding: 10px;">Use the above token to verify your account, when you open the link</p>
 
-                <div style="background-color: #737373; color: #f1f1f1; padding: 10px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                <div style="background-color: #737373; color: #f1f1f1; padding: 10px; ">
                     <p style="margin: 0; font-size: 15px; text-align: center;">© 2024 Doublelink Telecommunication Limited. All Rights Reserved. Suite 32, Premier Plaza, Otta</p>
                     <p style="margin: 0; font-size: 15px; text-align: center;">This email was sent to ${user.email}.</p>
                 </div>

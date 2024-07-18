@@ -5,7 +5,7 @@ import axios from "axios";
 
 // verify meter
 const verify_meter = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/merchant-verify";
+    const url = "https://api-service.vtpass.com/api/merchant-verify";
 
     const { billersCode, meterType, serviceID } = request.body;
     try {
@@ -46,7 +46,7 @@ const verify_meter = async (request, response) => {
 
 // purchase ikedc
 const purchase_ikeja = async (request, response) => {
-    const url = `https://sandbox.vtpass.com/api/pay`;
+    const url = `https://api-service.vtpass.com/api/pay`;
 
     const { billersCode, meterType, amount, phone, serviceID } = request.body;
 
@@ -134,7 +134,7 @@ const purchase_ikeja = async (request, response) => {
 
         // calculate cashback
         const calculative_amount = parseInt(amount);
-        const cash_back = (calculative_amount * 1.5) / 100;
+        const cash_back = (calculative_amount * 0.2) / 100;
 
         // debit wallet
         await Wallet.findOneAndUpdate(

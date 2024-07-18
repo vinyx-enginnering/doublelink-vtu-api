@@ -6,9 +6,16 @@ const PhoneBookSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  title: {
+  slug: {
     type: String,
     required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  description:{
+    type: String,
   },
   contacts: [
     {

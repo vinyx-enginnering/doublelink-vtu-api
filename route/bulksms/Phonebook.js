@@ -13,7 +13,7 @@ router.get('/list', authenticate, get_phonebooks);
 router.get('/:id', authenticate, get_phonebook);
 
 // Update a phonebook (Authenticated route)
-router.put('/:id', authenticate, update_phonebook);
+router.put('/update/:id', authenticate, update_phonebook);
 
 // Delete a phonebook (Authenticated route)
 router.delete('/:id', authenticate, delete_phonebook);
