@@ -1,22 +1,17 @@
 import mongoose from "mongoose";
+import timestampsPlugin from "mongoose-timestamp";
 
 
 const campaignSchema = mongoose.Schema({
-    from: {
-        type: String,
-        required: true,
+    user: {
+        ref: 'User',
+        type: mongoose.Schema.Types.ObjectId
     },
-    to: {
+    contacts: {
         type: [String],
-        required: function () {
-            return this.schedule_sms_status !== 'scheduled';
-        },
+        required: true
     },
     channel: {
-        type: String,
-        required: true,
-    },
-    message_type: {
         type: String,
         required: true,
     },
@@ -24,45 +19,24 @@ const campaignSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-
-    type: {
-        type: String,
-        required: function () {
-            return this.schedule_sms_status !== 'scheduled';
-        },
-    },
-    country_code: {
-        type: String,
-        required: function () {
-            return this.schedule_sms_status === 'scheduled';
-        },
-    },
     sender_id: {
         type: String,
-        required: function () {
-            return this.schedule_sms_status === 'scheduled';
-        },
-    },
-    phonebook_id: {
-        type: String,
-        required: true,
     },
     campaign_type: {
         type: String,
-        required: function () {
-            return this.schedule_sms_status === 'scheduled';
-        },
+        required: true
     },
-    schedule_sms_status: {
+    message_id: {
+        type: String
+    },
+    status: {
         type: String,
-        required: function () {
-            return this.schedule_time !== undefined;
-        },
-    },
-    schedule_time: {
-        type: String,
-    },
+        default: 'sent'
+    }
 });
+
+campaignSchema.plugin(timestampsPlugin)
+
 
 
 const Campaign = mongoose.model('Campaign', campaignSchema);
