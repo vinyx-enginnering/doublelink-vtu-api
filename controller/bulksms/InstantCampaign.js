@@ -6,8 +6,10 @@ import Campaign from "../../model/bulksms/Campaign.js";
 const send_bulk_messages = async (request, response) => {
     // grab the request body
     const { channel, sender, message, numbers, campaign_type } = request.body;
-    const url = "https://api.ng.termii.com/api/sms/send/bulk";
-
+    const baseUrl = "https://api.ng.termii.com/api/sms/send";
+    
+    
+    
 
     try {
         // check for invalid input data 
@@ -18,11 +20,11 @@ const send_bulk_messages = async (request, response) => {
 
         // calculate sms charges
         const charge =
-            channel === "dnd" ? numbers.length * 4 : numbers.length * 3;
+            channel === "dnd" ? numbers.length * 3 : numbers.length * 2.77;
 
         // check if wallet has enough balance
         // grab user wallet data
-        const wallet = await Wallet.findOne({ customer: request.user._id });
+        const wallet = await Wallet.findOne({ user: request.user._id });
 
         // check if the user has sufficient balance for transaction
         if (wallet.balance < charge) {
@@ -39,7 +41,7 @@ const send_bulk_messages = async (request, response) => {
             }
             return contact; // in case the number doesn't start with 0, we return it as is
         });
-
+        const url = convertedContacts.length > 100 ? `${baseUrl}/bulk` : baseUrl;
         // construct message body
         const body = {
             to: convertedContacts,
@@ -49,6 +51,7 @@ const send_bulk_messages = async (request, response) => {
             api_key: process.env.TERMII_API_KEY,
             channel: channel,
         };
+
 
         const { data } = await axios
             .post(url, JSON.stringify(body), {
@@ -65,7 +68,7 @@ const send_bulk_messages = async (request, response) => {
 
             // debit the wallet
             await Wallet.findOneAndUpdate(
-                { customer: request.user._id },
+                { user: request.user._id },
                 { $inc: { balance: -parseFloat(charge) } }
             );
 
@@ -92,7 +95,7 @@ const send_bulk_messages = async (request, response) => {
             });
 
             // send response to client
-            response.status(201).json({ message: "Congrat! You've campaigned a bulk message" });
+            response.status(201).json({ message: "Congrat! Your sms was delivered successfully!" });
         }
     } catch (error) {
         console.log(error);
@@ -113,7 +116,29 @@ const campaign_list = async (request, response) => {
 
 const campaign_report = async (request, response) => {
     try {
-        console.log(request.body)
+        console.log(request.body);
+    } catch (error) {
+        console.log(error);
+        response.status(500).json({ message: "Network Error" });
+    }
+};
+
+const campaign_history = async (request, response) => {
+    const url = `https://api.ng.termii.com/api/sms/inbox?api_key=${process.env.TERMII_API_KEY}&message_id=${request.params.message_id}`;
+
+    try {
+        // Make request to get message history
+        const { data } = await axios
+            .get(url, {
+                headers: {
+                    "Content-Type": ["application/json", "application/json"],
+                },
+            })
+            .then((res) => res)
+            .catch((error) => console.log(error));
+
+        console.log(data)
+        response.status(200).json(data)
     } catch (error) {
         console.log(error);
         response.status(500).json({ message: "Network Error" });
@@ -121,4 +146,4 @@ const campaign_report = async (request, response) => {
 }
 
 
-export { send_bulk_messages, campaign_list, campaign_report };
+export { send_bulk_messages, campaign_list, campaign_report, campaign_history };

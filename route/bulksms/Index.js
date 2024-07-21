@@ -9,6 +9,6 @@ import InstantCampaign from './InstantCampaign.js'
 // Use the individual routes
 router.use('/phonebook', Phonebook);
 router.use('/sender-id', SenderId);
-router.use('/sms', InstantCampaign)
+router.use('/sms', InstantCampaign);
 
 export default router;
