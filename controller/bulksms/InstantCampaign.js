@@ -7,9 +7,9 @@ const send_bulk_messages = async (request, response) => {
     // grab the request body
     const { channel, sender, message, numbers, campaign_type } = request.body;
     const baseUrl = "https://api.ng.termii.com/api/sms/send";
-    
-    
-    
+
+
+
 
     try {
         // check for invalid input data 
@@ -18,9 +18,12 @@ const send_bulk_messages = async (request, response) => {
             return;
         };
 
+        // Calculate the number of SMS parts
+        const smsParts = Math.ceil(message.length / (message.length > 160 ? 153 : 160));
+
         // calculate sms charges
-        const charge =
-            channel === "dnd" ? numbers.length * 3 : numbers.length * 2.77;
+        const chargePerSMS = channel === "dnd" ? 4 : 2.6;
+        const charge = parseFloat(numbers.length * chargePerSMS * smsParts);
 
         // check if wallet has enough balance
         // grab user wallet data
@@ -28,9 +31,7 @@ const send_bulk_messages = async (request, response) => {
 
         // check if the user has sufficient balance for transaction
         if (wallet.balance < charge) {
-            response
-                .status(400)
-                .json({ message: "Insufficient wallet balance, for this transaction" });
+            response.status(400).json({ message: "Insufficient wallet balance, for this transaction" });
             return;
         }
 
@@ -53,14 +54,19 @@ const send_bulk_messages = async (request, response) => {
         };
 
 
-        const { data } = await axios
+        const { data, response: api_response } = await axios
             .post(url, JSON.stringify(body), {
                 headers: {
                     "Content-Type": ["application/json", "application/json"],
                 },
             })
             .then((res) => res)
-            .catch((error) => console.log(error));
+            .catch((error) => error);
+
+
+        if (!data && api_response.status == 400) {
+            return response.status(400).json({ message: api_response.data.message });
+        };
 
         // check if messages have been sent
         if (data.message === "Successfully Sent") {
@@ -69,12 +75,12 @@ const send_bulk_messages = async (request, response) => {
             // debit the wallet
             await Wallet.findOneAndUpdate(
                 { user: request.user._id },
-                { $inc: { balance: -parseFloat(charge) } }
+                { $inc: { balance: -charge } }
             );
 
             // Record the Transaction
             await Transaction.create({
-                amount: parseFloat(charge),
+                amount: charge,
                 narration: `You campaigned sms messages to ${numbers.length} numbers`,
                 referrence_id: data.requestId,
                 status: "Success",
@@ -91,7 +97,9 @@ const send_bulk_messages = async (request, response) => {
                 message: message,
                 sender_id: sender,
                 campaign_type: campaign_type,
-                message_id: data.message_id
+                message_id: data.message_id,
+                amount: charge,
+                page: smsParts,
             });
 
             // send response to client
@@ -105,7 +113,7 @@ const send_bulk_messages = async (request, response) => {
 
 const campaign_list = async (request, response) => {
     try {
-        const campaigns = await Campaign.find({ user: request.user });
+        const campaigns = await Campaign.find({ user: request.user }).populate('user');
 
         response.status(200).json(campaigns);
     } catch (error) {
@@ -137,8 +145,81 @@ const campaign_history = async (request, response) => {
             .then((res) => res)
             .catch((error) => console.log(error));
 
-        console.log(data)
+
         response.status(200).json(data)
+    } catch (error) {
+        console.log(error);
+        response.status(500).json({ message: "Network Error" });
+    }
+};
+
+const get_campaign_messages = async (request, response) => {
+    const apiKey = process.env.TERMII_API_KEY;
+    const baseUrl = 'https://api.ng.termii.com/api/sms/inbox';
+    const messages = [];
+    let currentPage = 1;
+    let lastPage = 1;
+
+    try {
+        // fetch current user campaigns
+        const campaigns = await Campaign.find({ user: request.user });
+
+        // fetch all messages
+        while (currentPage <= lastPage) {
+            const url = `${baseUrl}?api_key=${apiKey}&page=${currentPage}`;
+            const { data } = await axios.get(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            messages.push(...data.data);
+            currentPage++;
+            lastPage = data.meta.last_page;
+        };
+
+        // Group messages by message_id for current user's campaigns
+        const messagesByCampaign = campaigns.reduce((acc, campaign) => {
+            acc[campaign.message_id] = messages.filter(
+                message => message.message_id === campaign.message_id
+            );
+            return acc;
+        }, {});
+
+        // Attach messages to their respective campaigns
+        const campaignsWithMessages = campaigns.map(campaign => {
+            return {
+                ...campaign._doc,
+                messages: messagesByCampaign[campaign.message_id] || []
+            };
+        });
+
+
+        // Process campaignsWithMessages to get the desired structure
+        const campaignData = campaignsWithMessages.map(campaign => {
+            const totalMessages = campaign.messages.length;
+            const deliveredCount = campaign.messages.filter(msg => msg.status === 'Delivered').length;
+            const failedCount = campaign.messages.filter(msg => msg.status === 'Rejected').length;
+            const sentCount = campaign.messages.filter(msg => msg.status === 'Sent').length;
+
+            const messageDeliveryRate = totalMessages ? (deliveredCount / totalMessages) * 100 : 0;
+            const messageFailedRate = totalMessages ? (failedCount / totalMessages) * 100 : 0;
+            const messageSentRate = totalMessages ? (sentCount / totalMessages) * 100 : 0;
+
+            return {
+                id: campaign._id,
+                messageDeliveryRate: messageDeliveryRate.toFixed(2), // Keeping two decimal places
+                messageFailedRate: messageFailedRate.toFixed(2),
+                messageSentRate: messageSentRate.toFixed(2),
+                dateRun: new Date(campaign.createdAt).toLocaleDateString(), // Formatting the date
+            };
+        });
+
+ 
+        // return result
+        response.status(200).json(campaignData);
+
+
     } catch (error) {
         console.log(error);
         response.status(500).json({ message: "Network Error" });
@@ -146,4 +227,4 @@ const campaign_history = async (request, response) => {
 }
 
 
-export { send_bulk_messages, campaign_list, campaign_report, campaign_history };
+export { send_bulk_messages, campaign_list, campaign_report, campaign_history, get_campaign_messages };

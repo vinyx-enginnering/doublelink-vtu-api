@@ -32,6 +32,14 @@ const campaignSchema = mongoose.Schema({
     status: {
         type: String,
         default: 'sent'
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    page: {
+        type: Number,
+        required: true
     }
 });
 
