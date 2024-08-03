@@ -31,6 +31,10 @@
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.3",
     "normalize-mongoose": "^1.0.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pdfjs-lib": "^0.0.149",
+    "pdfreader": "^3.0.2",
     "resend": "^0.17.1",
     "uuid": "^9.0.0"
   },

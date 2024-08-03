@@ -9,4 +9,5 @@ router.route("/purchase_single").post(authenticate, buy_pin)
 router.route("/create").post(authenticate, create_pin);
 
 
+
 export default router;

@@ -3,7 +3,7 @@ import Transaction from "../model/Transaction.js";
 import Wallet from "../model/Wallet.js";
 import moment from 'moment-timezone';
 
-// Query Internet Plans
+// Query VTPass Internet Plans
 // Query Data Bundle Varations
 const get_data_bundles = async (request, response) => {
     const { serviceId } = request.params;
@@ -31,6 +31,7 @@ const get_data_bundles = async (request, response) => {
 };
 
 // Purchase Data Bundle
+// Buy VTpass Data Plan
 const data_bundle = async (request, response) => {
     const url = "https://api-service.vtpass.com/api/pay";
 
@@ -153,6 +154,7 @@ const data_bundle = async (request, response) => {
     }
 };
 
+// Buy Instant Data Plan
 const buy_data_instant = async (request, response) => {
     const url = "https://api-service.vtpass.com/api/pay";
 

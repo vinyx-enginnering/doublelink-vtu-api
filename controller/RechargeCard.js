@@ -1,69 +1,138 @@
 import RechargeCard from "../model/RechargeCard.js";
 import Wallet from "../model/Wallet.js";
 import Transaction from "../model/Transaction.js";
+import Voucher from "../model/Voucher.js";
 import { v4 as uuid } from "uuid";
+import path from "path";
+const __dirname = path.resolve();
+import fs from 'fs';
+import { PdfReader } from 'pdfreader';
 
-// create new pin
+const extractTextFromPDF = async (filePath) => {
+    const pdfBuffer = fs.readFileSync(filePath);
+
+    return new Promise((resolve, reject) => {
+        let pdfText = '';
+        new PdfReader().parseBuffer(pdfBuffer, (err, item) => {
+            if (err) {
+                return reject(err);
+            } else if (!item) {
+                // End of buffer
+                return resolve(pdfText);
+            } else if (item.text) {
+                pdfText += item.text + ' ';
+            }
+        });
+    });
+};
+
 const create_pin = async (request, response) => {
-    const { pin, type, denomination, serial } = request.body;
     try {
-        // check if the pin & type is empty
-        if (pin === "" || type === "" || denomination === "" || !pin || !type || !denomination) {
-            response.status(400).json({ message: "Invalid Request" });
-            return;
+        if (!request.files || !request.files.file) {
+            return response.status(400).json({ message: "No file uploaded" });
         }
 
-        // new pin
-        const new_pin = {
-            pin: pin,
-            type: type,
-            denomination: denomination,
-            serial: serial,
+        const file = request.files.file;
+        const { network, denomination } = request.body;
+
+        const filePath = path.join(__dirname, 'uploads', file.name);
+
+        // Save the uploaded file to a temporary location
+        await file.mv(filePath);
+
+        const text = await extractTextFromPDF(filePath);
+
+        // Define regex patterns for each network
+        const patterns = {
+            airtel: /\b\d{4}-\d{4}-\d{4}-\d{4}\b/g,
+            glo: /\b\d{3}-\d{4}-\d{4}-\d{4}\b/g,
+            mtn: /\b\d{4}-\d{4}-\d{4}-\d{5}\b/g,
+            '9mobile': /\b\d{4}-\d{4}-\d{4}-\d{3}\b/g,
+        };
+
+        const snPattern = /S\/N\s*:\s*(\d+)/g;
+
+        // Validate network
+        if (!patterns[network]) {
+            return response.status(400).json({ message: "Invalid network" });
+        }
+
+        // Extract pins and serial numbers
+        const pinPattern = patterns[network];
+        const pins = [];
+        let match;
+
+        // Extract pins
+        while ((match = pinPattern.exec(text)) !== null) {
+            const pin = match[0];
+            pins.push({ pin });
+        }
+
+        // Extract serial numbers
+        pins.forEach(pinObject => {
+            const snMatch = snPattern.exec(text);
+            if (snMatch) {
+                pinObject.serial_number = snMatch[1];
+            }
+        });
+
+        // Format the pins according to the RechargeCardSchema
+        const rechargeCards = pins.map(pinObject => ({
+            pin: pinObject.pin,
+            network: network,
+            denomination: parseInt(denomination, 10),
+            serial: pinObject.serial_number,
             isActive: true
-        }
+        }));
 
-        await RechargeCard.create(new_pin);
+        // Store the formatted pins in the database
+        await RechargeCard.insertMany(rechargeCards);
 
-        response.status(201).json({ message: "Pin Created" })
+        // Clean up: delete the uploaded file
+        fs.unlinkSync(filePath);
 
+        const pinCount = pins.length;
+
+        response.json({ message: `Successfully uploaded ${pinCount} pcs of ${network} pins` });
     } catch (error) {
         console.error(error);
-        response.status(500).json({ message: "Server Error" });
+        response.status(500).json({ message: "Something went wrong! Try again" });
     }
 };
 
 // order existing pins
 const buy_pins = async (request, response) => {
-    const { quantity, type, amount, denomination } = request.body;
-    const price = parseInt(amount);
-    const tax = (price * 3) / 100;
+    const { quantity, network, amount, denomination } = request.body;
+    const price = parseFloat(amount);
+    const tax = 0;
     try {
         // check if the request is empty
-        if (!quantity || type === "" || amount === "" || denomination === "") {
+        if (!quantity || network === "" || amount === "" || denomination === "") {
             response.status(400).json({ message: "Invalid Request" });
             return;
         }
 
         // check if the user balance is sufficient
         const wallet = await Wallet.findOne({ user: request.user._id });
+        const total_amount = parseFloat(tax + price);
 
-        if (wallet.balance < (price + tax)) {
+        if (wallet.balance < total_amount) {
             response.status(400).json({ message: "Insufficient Balance" });
             return;
-        }
+        };
 
         // check if the order is available
-        const pins = await RechargeCard.find({ isActive: true, type: type, denomination: parseInt(denomination) }).limit(quantity);
+        const pins = await RechargeCard.find({ isActive: true, network: network, denomination: parseInt(denomination) }).limit(quantity);
 
         if (pins.length < quantity) {
-            response.status(400).json({ message: `Insufficient ${type} pins` });
+            response.status(400).json({ message: `Insufficient ${network} pins` });
             return;
         }
 
         // when all goes well (pins & balance are sufficient)
         // charge wallet with amount
         // debit wallet
-        const total_amount = tax + price;
+        
         await Wallet.findOneAndUpdate(
             { user: request.user._id },
             { $inc: { balance: -total_amount } }
@@ -82,7 +151,7 @@ const buy_pins = async (request, response) => {
         // create transaction
         const transaction = await Transaction.create({
             amount: price,
-            narration: `Purchased EPins`,
+            narration: `Purchased e-Pins`,
             referrence_id: uuid(),
             status: "Success",
             user: request.user._id,
@@ -93,10 +162,17 @@ const buy_pins = async (request, response) => {
                     pins: `${pins}`,
                     network: `${type}`,
                     denomination: `${denomination}`,
-                    
                 }
             ]
         });
+
+        // record a new voucher
+        await Voucher.create({
+            user: request.user,
+            pins: pins,
+            network: type,
+            denomination: denomination
+        })
         // send response
 
         response.status(200).json(transaction);

@@ -6,10 +6,10 @@ const RechargeCardSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    type: {
+    network: {
         type: String,
         required: true,
-        enum: ['airtel', 'glo', 'etisalat', 'mtn']
+        enum: ['airtel', 'glo', '9mobile', 'mtn']
     },
     denomination: {
         type: Number,
