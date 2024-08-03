@@ -100,11 +100,11 @@ const create_pin = async (request, response) => {
     }
 };
 
-// order existing pins
+// order bulk epins
 const buy_pins = async (request, response) => {
     const { quantity, network, amount, denomination } = request.body;
     const price = parseFloat(amount);
-    const tax = 0;
+    const tax = 0.00;
     try {
         // check if the request is empty
         if (!quantity || network === "" || amount === "" || denomination === "") {
@@ -129,52 +129,43 @@ const buy_pins = async (request, response) => {
             return;
         }
 
-        // when all goes well (pins & balance are sufficient)
-        // charge wallet with amount
-        // debit wallet
-        
+        // When all goes well (pins & balance are sufficient)
+        // Charge wallet with amount
         await Wallet.findOneAndUpdate(
             { user: request.user._id },
             { $inc: { balance: -total_amount } }
         );
 
-        // update the used pins
-        const updates = pins.map((pin) => ({
-            updateOne: {
-                filter: { _id: pin._id },
-                update: { $set: { isActive: false } },
-            },
-        }));
+        // Delete the used pins
+        const pinIds = pins.map(pin => pin._id);
+        await RechargeCard.deleteMany({ _id: { $in: pinIds } });
 
-        await RechargeCard.bulkWrite(updates);
-
-        // create transaction
+        // Create transaction
         const transaction = await Transaction.create({
             amount: price,
-            narration: `Purchased e-Pins`,
-            referrence_id: uuid(),
+            narration: `Purchased ${quantity} units of ${network} ${denomination} e-Pins`,
+            reference_id: uuid(),
             status: "Success",
-            user: request.user._id,
+            user: request.user._id, 
             tax: tax,
             type: "Payable",
             logs: [
                 {
-                    pins: `${pins}`,
-                    network: `${type}`,
-                    denomination: `${denomination}`,
+                    pins: pins.map(pin => pin.pin).join(', '),
+                    network: network,
+                    denomination: denomination,
                 }
             ]
         });
 
-        // record a new voucher
+        // Record a new voucher
         await Voucher.create({
-            user: request.user,
-            pins: pins,
-            network: type,
+            user: request.user._id,
+            pins: pins.map(pin => pin.pin),
+            network: network,
             denomination: denomination
-        })
+        });
         // send response
-
         response.status(200).json(transaction);
 
     } catch (error) {
@@ -183,84 +174,74 @@ const buy_pins = async (request, response) => {
     }
 };
 
-// delete in-active pins (this is a cron-job)
 
-// order single pin
+// order single epin
 const buy_pin = async (request, response) => {
-    const { denomination, type } = request.body;
+    const { denomination, network } = request.body;
     try {
-        // check if the request is valid
-        if (denomination === "" || type === "" || !denomination || !type) {
-            response.status(400).json({ message: "Invalid Request" });
-            return;
+        // Check if the request is valid
+        if (denomination === "" || network === "" || !denomination || !network) {
+            return response.status(400).json({ message: "Invalid Request" });
         }
 
-        // fetch that pin, if it's available
-        const pin = await RechargeCard.findOne({ type: type, denomination: parseInt(denomination) });
+        // Fetch that pin, if it's available
+        const pin = await RechargeCard.findOne({ network: network, denomination: parseInt(denomination), isActive: true });
 
         if (!pin) {
-            response.status(400).json({ message: `Insufficient ${type} pin` });
-            return;
+            return response.status(400).json({ message: `Insufficient ${network} ${denomination} e-Pin` });
         }
 
-        // check wallet balance
+        // Check wallet balance
         const wallet = await Wallet.findOne({ user: request.user._id });
-        console.log(wallet, request.user)
 
-        if (wallet.balance < parseInt(denomination)) {
-            response.status(400).json({ message: "Insufficient Balance" });
-            return;
+        if (wallet.balance < parseFloat(denomination)) {
+            return response.status(400).json({ message: "Insufficient Balance" });
         }
 
-        // charge wallet
-        // calculate cashback
-        const cash_back = (denomination * 2) / 100;
+        // Calculate cashback
+        const cash_back = 0.00;
 
-        // debit wallet
+        // Debit wallet
         await Wallet.findOneAndUpdate(
             { user: request.user._id },
-            { $inc: { balance: -parseInt(denomination) } }
+            { $inc: { balance: -parseFloat(denomination) } }
         );
 
-        // credit cash back wallet
+        // Credit cashback wallet
         await Wallet.findOneAndUpdate(
             { user: request.user._id },
-            { $inc: { cashback: parseInt(cash_back) } }
+            { $inc: { cashback: parseFloat(cash_back) } }
         );
 
-        // update pins collection
-        // await RechargeCard.updateOne({ pin: pin.pin }, { $set: { isActive: false } });
-        await RechargeCard.deleteOne({
-            pin: pin.pin,
-            denomination: pin.denomination
-        });
+        // Delete the used pin
+        await RechargeCard.deleteOne({ _id: pin._id });
 
-        // create transaction
+        // Create transaction
         const transaction = await Transaction.create({
             amount: denomination,
             narration: `Purchased Recharge Pin`,
-            referrence_id: uuid(),
+            reference_id: uuid(),
             status: "Success",
             user: request.user._id,
             type: "Payable",
             logs: [
                 {
-                    pin: `${pin.pin}`,
-                    network: `${pin.type}`,
-                    denomination: `${pin.denomination}`,
-                    serial: `${pin.serial}`
+                    pin: pin.pin,
+                    network: pin.network,
+                    denomination: pin.denomination,
+                    serial: pin.serial
                 }
             ]
         });
-        // send response
 
-        response.status(200).json(transaction);
+        // Send response
+        return response.status(200).json(transaction);
 
     } catch (error) {
         console.error(error);
-        response.status(500).json({ message: "Service error" })
+        return response.status(500).json({ message: "Service error" });
     }
-}
+};
 
 export {
     buy_pins,
