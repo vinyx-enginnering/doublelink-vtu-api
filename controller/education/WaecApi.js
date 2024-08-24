@@ -5,7 +5,7 @@ import axios from "axios";
 
 // verify meter
 const get_registration_plans = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/service-variations?serviceID=waec-registration";
+    const url = "https://api-service.vtpass.com/api/service-variations?serviceID=waec-registration";
 
     try {
 
@@ -16,8 +16,8 @@ const get_registration_plans = async (request, response) => {
                 url,
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )
@@ -38,7 +38,7 @@ const get_registration_plans = async (request, response) => {
 };
 
 const purchase_waec = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
     const serviceID = "waec-registration";
 
     const { variation_code, variation_amount, quantity, phone } = request.body;

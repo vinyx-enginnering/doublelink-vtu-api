@@ -8,6 +8,8 @@ const verify_meter = async (request, response) => {
     const url = "https://api-service.vtpass.com/api/merchant-verify";
 
     const { billersCode, meterType, serviceID } = request.body;
+
+    const code = billersCode
     try {
         // check if the request body is valid
         if (!billersCode || !meterType || billersCode === "" || meterType === "") {
@@ -19,11 +21,11 @@ const verify_meter = async (request, response) => {
         const { data } = await axios
             .post(
                 url,
-                { billersCode, serviceID, type: meterType },
+                { billersCode: code, serviceID, type: meterType },
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )
@@ -49,7 +51,6 @@ const purchase_ikeja = async (request, response) => {
     const url = `https://api-service.vtpass.com/api/pay`;
 
     const { billersCode, meterType, amount, phone, serviceID } = request.body;
-
 
     try {
         // validate the request
@@ -104,8 +105,8 @@ const purchase_ikeja = async (request, response) => {
                 },
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )

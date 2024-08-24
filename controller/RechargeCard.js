@@ -7,6 +7,7 @@ import path from "path";
 const __dirname = path.resolve();
 import fs from 'fs';
 import { PdfReader } from 'pdfreader';
+import Setting from "../model/Setting.js";
 
 const extractTextFromPDF = async (filePath) => {
     const pdfBuffer = fs.readFileSync(filePath);
@@ -105,6 +106,7 @@ const buy_pins = async (request, response) => {
     const { quantity, network, amount, denomination } = request.body;
     const price = parseFloat(amount);
     const tax = 0.00;
+
     try {
         // check if the request is empty
         if (!quantity || network === "" || amount === "" || denomination === "") {
@@ -112,9 +114,17 @@ const buy_pins = async (request, response) => {
             return;
         }
 
+        // check if the user has the right permission to print airtime
+        const user_setting = await Setting.findOne({ user: request.user._id });
+
+        if (!user_setting || user_setting.airtimePrintingEnabled === false) {
+            return response.status(400).json({ message: "Invalid Request! Airtime printing is disabled on your account" })
+        };
+
+
         // check if the user balance is sufficient
         const wallet = await Wallet.findOne({ user: request.user._id });
-        const total_amount = parseFloat(tax + price);
+        const total_amount = parseFloat(tax + (price * quantity));
 
         if (wallet.balance < total_amount) {
             response.status(400).json({ message: "Insufficient Balance" });
@@ -122,7 +132,11 @@ const buy_pins = async (request, response) => {
         };
 
         // check if the order is available
-        const pins = await RechargeCard.find({ isActive: true, network: network, denomination: parseInt(denomination) }).limit(quantity);
+        const _network = network.toLowerCase();
+        const _denomination = denomination.toLowerCase();
+
+        const pins = await RechargeCard.find({ isActive: true, network: _network, denomination: _denomination }).limit(quantity);
+
 
         if (pins.length < quantity) {
             response.status(400).json({ message: `Insufficient ${network} pins` });
@@ -141,17 +155,17 @@ const buy_pins = async (request, response) => {
         await RechargeCard.deleteMany({ _id: { $in: pinIds } });
 
         // Create transaction
-        const transaction = await Transaction.create({
-            amount: price,
+        await Transaction.create({
+            amount: total_amount,
             narration: `Purchased ${quantity} units of ${network} ${denomination} e-Pins`,
             reference_id: uuid(),
             status: "Success",
-            user: request.user._id, 
+            user: request.user._id,
             tax: tax,
             type: "Payable",
             logs: [
                 {
-                    pins: pins.map(pin => pin.pin).join(', '),
+                    price: price,
                     network: network,
                     denomination: denomination,
                 }
@@ -161,12 +175,13 @@ const buy_pins = async (request, response) => {
         // Record a new voucher
         await Voucher.create({
             user: request.user._id,
-            pins: pins.map(pin => pin.pin),
-            network: network,
-            denomination: denomination
+            pins: pins,
+            network: _network,
+            denomination: parseInt(denomination)
         });
+
         // send response
-        response.status(200).json(transaction);
+        response.status(200).json({ message: `Purchase complete!` });
 
     } catch (error) {
         console.error(error);
@@ -177,18 +192,20 @@ const buy_pins = async (request, response) => {
 
 // order single epin
 const buy_pin = async (request, response) => {
-    const { denomination, network } = request.body;
+    const { denomination, type } = request.body;
+
+    console.log(request.body)
     try {
         // Check if the request is valid
-        if (denomination === "" || network === "" || !denomination || !network) {
+        if (denomination === "" || type === "" || !denomination || !type) {
             return response.status(400).json({ message: "Invalid Request" });
         }
 
         // Fetch that pin, if it's available
-        const pin = await RechargeCard.findOne({ network: network, denomination: parseInt(denomination), isActive: true });
+        const pin = await RechargeCard.findOne({ network: type, denomination: parseInt(denomination), isActive: true });
 
         if (!pin) {
-            return response.status(400).json({ message: `Insufficient ${network} ${denomination} e-Pin` });
+            return response.status(400).json({ message: `Insufficient ${type} ${denomination} e-Pin` });
         }
 
         // Check wallet balance
@@ -239,12 +256,25 @@ const buy_pin = async (request, response) => {
 
     } catch (error) {
         console.error(error);
-        return response.status(500).json({ message: "Service error" });
+        return response.status(500).json({ message: "Something went wrong! Try again" });
     }
 };
+
+// get my purchased vouchers
+const get_vouchers = async (request, response) => {
+    try {
+        const vouchers = await Voucher.find({ user: request.user._id }).sort({ createdAt: -1 });
+
+        response.status(200).json(vouchers)
+    } catch (error) {
+        console.error(error);
+        return response.status(500).json({ message: "Something went wrong! Try again" });
+    }
+}
 
 export {
     buy_pins,
     create_pin,
-    buy_pin
+    buy_pin,
+    get_vouchers
 }

@@ -7,10 +7,10 @@ const VoucherSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId
     },
     pins: {
-        type: String,
+        type: [],
         required: true
     },
-    type: {
+    network: {
         type: String,
         required: true,
         enum: ['airtel', 'glo', '9mobile', 'mtn']

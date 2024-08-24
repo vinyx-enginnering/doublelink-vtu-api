@@ -102,7 +102,7 @@ const airtime_topup = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    phone_number: `${phone}`,
+                    recepient: `${phone}`,
                     network: `${serviceID}`,
                 }
             ]
@@ -189,7 +189,7 @@ const airtime_instant_topup = async (request, response) => {
             type: "Payable",
             logs: [
                 {
-                    phone_number: `${phone}`,
+                    recepient: `${phone}`,
                     network: `${serviceID}`,
                 }
             ]

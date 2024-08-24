@@ -4,8 +4,9 @@ import Wallet from '../model/Wallet.js';
 import bcryptjs from 'bcryptjs';
 import generateToken from '../utility/generateToken.js';
 import { authenticateMonnify, createMonnifyAccount } from '../utility/monnify.js';
-import crypto from "crypto";
+
 import { sendVerificationEmail } from "../utility/emailService.js";
+import Setting from '../model/Setting.js';
 
 const register = async (request, response) => {
   // MONNIFY KEYS
@@ -51,6 +52,9 @@ const register = async (request, response) => {
 
     // Create a wallet for the user
     await Wallet.create({ user: user._id });
+
+    // Create User Setting
+    await Setting.create({user: user._id});
 
     // Send the verification email
     await sendVerificationEmail(email, verificationToken, user);

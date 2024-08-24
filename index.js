@@ -34,6 +34,7 @@ import Profile from "./route/Profile.js";
 import Blog from "./route/Blog.js";
 import UInsure from "./route/Insurance/ThirdPartyMotor.js";
 import Messaging from "./route/bulksms/Index.js";
+import Setting from './route/Setting.js'
 
 // initialize app
 const app = express();
@@ -76,7 +77,8 @@ app.use("/settlement", Settlement);
 app.use("/profile", Profile);
 app.use("/article", Blog);
 app.use("/thirdpartymotor", UInsure);
-app.use("/messaging", Messaging)
+app.use("/messaging", Messaging);
+app.use('/setting', Setting);
 
 
 const PORT = process.env.PORT || 5000;

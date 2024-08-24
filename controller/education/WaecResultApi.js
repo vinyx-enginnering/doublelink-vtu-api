@@ -6,7 +6,7 @@ import ScratchCard from "../../model/EducationScratchCard.js";
 
 // verify meter
 const get_result_checker_plans = async (request, response) => {
-    const url = "https://vtpass.com/api/service-variations?serviceID=waec";
+    const url = "https://api-service.vtpass.com/api/service-variations?serviceID=waec";
 
     try {
 
@@ -17,8 +17,8 @@ const get_result_checker_plans = async (request, response) => {
                 url,
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )
@@ -39,7 +39,7 @@ const get_result_checker_plans = async (request, response) => {
 };
 
 const purchase_result_checker = async (request, response) => {
-    const url = "https://sandbox.vtpass.com/api/pay";
+    const url = "https://api-service.vtpass.com/api/pay";
     const serviceID = "waec";
 
     const { variation_code, variation_amount, quantity, phone } = request.body;
@@ -91,8 +91,8 @@ const purchase_result_checker = async (request, response) => {
                 },
                 {
                     headers: {
-                        "api-key": process.env.SANDBOX_VT_API_KEY,
-                        "secret-key": process.env.SANDBOX_VT_PRIVATE_KEY,
+                        "api-key": process.env.VT_API_KEY,
+                        "secret-key": process.env.VT_PRIVATE_KEY,
                     },
                 }
             )
@@ -111,13 +111,9 @@ const purchase_result_checker = async (request, response) => {
             return;
         }
 
-        // logs
-        console.log(data);
-        console.log(data.response_description)
-
         // calculate cashback
 
-        const cash_back = 100;
+        const cash_back = 50;
 
         // debit wallet
         await Wallet.findOneAndUpdate(

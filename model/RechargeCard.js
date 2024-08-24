@@ -26,7 +26,7 @@ const RechargeCardSchema = mongoose.Schema({
     },
 });
 
-RechargeCardSchema.index({ isActive: 1, type: 1, denomination: 1 });
+RechargeCardSchema.index({ isActive: 1, network: 1, denomination: 1 });
 
 RechargeCardSchema.plugin(timestamp);
 

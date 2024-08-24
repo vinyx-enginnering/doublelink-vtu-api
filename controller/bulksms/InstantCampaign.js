@@ -8,9 +8,6 @@ const send_bulk_messages = async (request, response) => {
     const { channel, sender, message, numbers, campaign_type } = request.body;
     const baseUrl = "https://api.ng.termii.com/api/sms/send";
 
-
-
-
     try {
         // check for invalid input data 
         if (channel == '' || sender == '' || numbers.length == 0 || campaign_type == '' || message == '') {
@@ -22,7 +19,7 @@ const send_bulk_messages = async (request, response) => {
         const smsParts = Math.ceil(message.length / (message.length > 160 ? 153 : 160));
 
         // calculate sms charges
-        const chargePerSMS = channel === "dnd" ? 4 : 2.6;
+        const chargePerSMS = channel === "dnd" ? 4 : 2.1;
         const charge = parseFloat(numbers.length * chargePerSMS * smsParts);
 
         // check if wallet has enough balance
@@ -87,6 +84,13 @@ const send_bulk_messages = async (request, response) => {
                 user: request.user._id,
                 commission: cash_back,
                 type: "Payable",
+                logs: [
+                    {
+                        chargePerSMS: chargePerSMS,
+                        totalCost: charge,
+                        page: smsParts
+                    },
+                ],
             });
 
             // Record the campaign
@@ -113,7 +117,7 @@ const send_bulk_messages = async (request, response) => {
 
 const campaign_list = async (request, response) => {
     try {
-        const campaigns = await Campaign.find({ user: request.user }).populate('user');
+        const campaigns = await Campaign.find({ user: request.user }).populate('user').sort({ createdAt: -1 });
 
         response.status(200).json(campaigns);
     } catch (error) {
@@ -215,7 +219,7 @@ const get_campaign_messages = async (request, response) => {
             };
         });
 
- 
+
         // return result
         response.status(200).json(campaignData);
 
