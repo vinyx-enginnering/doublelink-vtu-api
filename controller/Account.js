@@ -120,13 +120,19 @@ const confirm_bank_transfer = async (request, response) => {
                 .then((res) => res)
                 .catch((err) => console.log(err));
 
-          
+
 
             // if the transaction is successfully PAID
             if (data.responseBody.paymentStatus === 'PAID') {
+
+
                 const amount = parseFloat(data.responseBody.amountPaid);
-                const vat = (amount * 2) / 100;
+                // Calculate VAT with a cap of 2,000 Naira
+                const calculatedVat = (amount * 2) / 100;
+                const vat = calculatedVat > 2000 ? 2000 : calculatedVat;
+
                 const balance = amount - vat;
+
 
                 // fund the custmomer wallet
                 await Wallet.findOneAndUpdate(
