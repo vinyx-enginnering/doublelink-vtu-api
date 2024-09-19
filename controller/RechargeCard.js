@@ -115,11 +115,11 @@ const buy_pins = async (request, response) => {
         }
 
         // check if the user has the right permission to print airtime
-        const user_setting = await Setting.findOne({ user: request.user._id });
+        // const user_setting = await Setting.findOne({ user: request.user._id });
 
-        if (!user_setting || user_setting.airtimePrintingEnabled === false) {
-            return response.status(400).json({ message: "Invalid Request! Airtime printing is disabled on your account" })
-        };
+        // if (!user_setting || user_setting.airtimePrintingEnabled === false) {
+        //     return response.status(400).json({ message: "Invalid Request! Airtime printing is disabled on your account" })
+        // };
 
 
         // check if the user balance is sufficient
