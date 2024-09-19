@@ -109,7 +109,7 @@ const buy_pins = async (request, response) => {
 
     try {
         // check if the request is empty
-        if (!quantity || network === "" || amount === "" || denomination === "") {
+        if (!quantity || quantity == "" || network === "" || amount === "" || denomination === "") {
             response.status(400).json({ message: "Invalid Request" });
             return;
         }
