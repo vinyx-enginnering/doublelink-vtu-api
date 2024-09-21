@@ -6,7 +6,7 @@ import Transaction from "../model/Transaction.js";
 const get_tv_plans = async (request, response) => {
     const biller = request.params.biller;
 
-    const url = `https://api-service.vtpass.com/api/service-variations?serviceID=${biller}`;
+    const url = `https://vtpass.com/api/service-variations?serviceID=${biller}`;
 
 
     try {
