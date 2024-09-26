@@ -14,8 +14,8 @@ const fetchAllSenderIdsFromAPI = async (url) => {
                 },
             });
 
-            allSenderIds = [...allSenderIds, ...apiResponse.data];
-            lastPage = apiResponse.last_page;
+            allSenderIds = [...allSenderIds, ...apiResponse.content];
+            lastPage = apiResponse.last;
             currentPage++;
         } while (currentPage <= lastPage);
     } catch (error) {
@@ -41,8 +41,6 @@ const update_sender_ids = async (request, response) => {
         apiSenderIds.forEach(senderId => {
             apiSenderIdsMap.set(senderId.sender_id, senderId.status);
         });
-
-        console.log(apiSenderIdsMap)
 
         // Update the database sender IDs based on the API response
         await Promise.all(dbSenderIds.map(async dbSenderId => {
