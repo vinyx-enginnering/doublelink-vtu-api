@@ -7,7 +7,7 @@ import User from '../model/User.js';
 import generateToken from '../utility/generateToken.js';
 
 
-// Create or update a profile
+
 const saveProfile = async (request, response) => {
     const {
         type,
@@ -19,64 +19,66 @@ const saveProfile = async (request, response) => {
         email,
         address
     } = request.body;
-    console.log(request.body)
-    const { cacDocument, idCard } = request.files;
+
+    const { cacDocument, idCard } = request.files || {}; // Safely get files, even if they don't exist
 
     try {
+        // Initialize profile fields to update
         const profileFields = {
-            type,
-            idType,
-            businessName,
-            businessEmail,
-            businessAddress,
-            name,
-            email,
-            address,
-            status: 'pending',
+            status: 'pending',  // Set the status as 'pending'
         };
 
-        const pendingRequest = await Profile.findOne({ user: request.user, status: 'pending' });
+        // Assign only if the field exists (avoiding overwriting with empty/undefined values)
+        if (type) profileFields.type = type;
+        if (idType) profileFields.idType = idType;
+        if (businessName) profileFields.businessName = businessName;
+        if (businessEmail) profileFields.businessEmail = businessEmail;
+        if (businessAddress) profileFields.businessAddress = businessAddress;
+        if (name) profileFields.name = name;
+        if (email) profileFields.email = email;
+        if (address) profileFields.address = address;
 
-
+        // Check if the user already has a pending profile update request
+        const pendingRequest = await Profile.findOne({ user: request.user._id, status: 'pending' });
+        
         if (pendingRequest) {
-            return response.status(400).json({ message: "Hi you already have a pending profile update request" });
-        };
+            return response.status(400).json({ message: "You already have a pending profile update request." });
+        }
 
-
-        // Handle CAC document upload
+        // Handle CAC document upload if it exists
         if (cacDocument) {
-            // Save the uploaded file
             const cacPath = `uploads/${cacDocument.name}`;
             await cacDocument.mv(cacPath);
             profileFields.cacDocument = cacPath;
         }
 
-        // Handle ID card upload
+        // Handle ID card upload if it exists
         if (idCard) {
-            // Save the uploaded file
             const idCardPath = `uploads/${idCard.name}`;
             await idCard.mv(idCardPath);
             profileFields.idCard = idCardPath;
         }
 
+        // Create or update the profile
         const profile = await Profile.findOneAndUpdate(
             { user: request.user._id },
             { $set: profileFields },
             { upsert: true, new: true }
         );
 
-        response.status(200).json({ message: 'Profile saved successfully', profile });
+        return response.status(200).json({ message: 'Profile saved successfully', profile });
+
     } catch (error) {
-        // Remove uploaded files in case of an error
+        // Clean up any uploaded files if an error occurs
         if (cacDocument) {
-            fs.unlinkSync(cacPath);
+            fs.unlinkSync(`uploads/${cacDocument.name}`);
         }
         if (idCard) {
-            fs.unlinkSync(idCardPath);
+            fs.unlinkSync(`uploads/${idCard.name}`);
         }
 
         console.error(error);
-        res.status(500).json({ message: 'Network Error' });
+        return response.status(500).json({ message: 'Network Error' });
     }
 };
 
