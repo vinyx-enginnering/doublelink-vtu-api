@@ -127,25 +127,26 @@ const editUserPassword = async (request, response) => {
 const getProfile = async (request, response) => {
     try {
         // Assuming `req.user.id` contains the authenticated user's ID
-        const userId = req.user.id;
+        const userId = request.user.id;
 
         // Find the profile based on the user ID
         const profile = await Profile.findOne({ user: userId });
 
         if (!profile) {
-            return res.status(404).json({ message: 'No profile found for this user' });
+            return response.status(404).json({ message: 'No profile found for this user' });
         }
 
         // If profile is found, return it
-        return res.status(200).json(profile);
+        return response.status(200).json(profile);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Server error. Please try again later.' });
+        return response.status(500).json({ message: 'Server error. Please try again later.' });
     }
 } 
 
 
 export {
     saveProfile,
-    editUserPassword
+    editUserPassword,
+    getProfile
 }
