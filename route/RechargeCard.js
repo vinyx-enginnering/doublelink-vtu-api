@@ -7,7 +7,7 @@ import { delete_pins } from "../utility/deleteData.js";
 import { check_epins_unique, check_voucher_rechargecard_duplicates, delete_voucher_rechargecard_duplicates } from "../utility/checkUniqueInCollection.js";
 
 router.route("/purchase_bulk").post(authenticate, buy_pins);
-router.route("/purchase_single").post(authenticate, buy_pin)
+router.route("/purchase_single").post(authenticate, buy_pin);
 router.route("/create").post(authenticate, create_pin);
 router.route("/upload_epins").post(authenticate, upload_pins_from_excel);
 router.route("/list").get(authenticate, get_vouchers)

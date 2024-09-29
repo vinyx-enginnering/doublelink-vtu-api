@@ -309,11 +309,18 @@ const buy_pins = async (request, response) => {
 const buy_pin = async (request, response) => {
     const { denomination, type } = request.body;
 
-    console.log(request.body)
+ 
     try {
         // Check if the request is valid
         if (denomination === "" || type === "" || !denomination || !type) {
             return response.status(400).json({ message: "Invalid Request" });
+        };
+
+        // Check wallet balance
+        const wallet = await Wallet.findOne({ user: request.user._id });
+
+        if (wallet.balance < parseFloat(denomination)) {
+            return response.status(400).json({ message: "Insufficient Balance" });
         }
 
         // Fetch that pin, if it's available
@@ -323,12 +330,7 @@ const buy_pin = async (request, response) => {
             return response.status(400).json({ message: `Insufficient ${type} ${denomination} e-Pin` });
         }
 
-        // Check wallet balance
-        const wallet = await Wallet.findOne({ user: request.user._id });
-
-        if (wallet.balance < parseFloat(denomination)) {
-            return response.status(400).json({ message: "Insufficient Balance" });
-        }
+        
 
         // Calculate cashback
         const cash_back = 0.00;
@@ -394,5 +396,3 @@ export {
     get_vouchers,
     upload_pins_from_excel
 }
-
-// 550-7752-5161-0547, 554-6289-4282-5813, 558-9032-1835-3633, 554-0471-9321-6207, 552-4849-0692-0484, 559-0399-6794-2239, 550-9780-7886-7207, 554-5576-8760-6803, 555-6331-3079-6124, 557-5312-5534-0944, 555-5912-6557-0860, 559-1429-3035-7145, 558-2195-7995-4538, 556-1906-9065-6660, 552-1983-9836-2160, 551-4753-7308-8833, 557-2522-5988-4601, 554-8204-6794-5842, 552-8893-3573-4970, 554-1410-0598-1896, 555-4376-0357-5146, 550-7169-4866-2896, 555-9258-2785-5931, 555-5562-4144-5154, 550-4556-2457-1584, 551-9186-1250-4857, 556-4763-3969-3775, 558-7683-4944-4984, 559-1442-9629-7606, 558-2537-8854-7276, 555-3688-0543-5640, 556-0191-9551-9638, 554-0156-9073-3151, 558-0431-1028-6093, 558-6749-3605-6156, 550-2429-2144-9954, 558-9380-8986-5385, 551-3724-2345-6406, 550-1730-2382-3239, 552-4875-4877-6588, 557-4558-8020-4878, 557-4153-6779-0575, 552-9726-5880-5920, 550-1971-6971-2230, 551-8609-0040-6357, 557-2705-5312-2720, 555-1226-6356-8446, 551-2512-0102-1618"

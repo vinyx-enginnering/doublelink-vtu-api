@@ -9,7 +9,6 @@ const airtime_topup = async (request, response) => {
     const url = "https://vtpass.com/api/pay";
 
     const { serviceID, amount, phone } = request.body;
-    console.log({ serviceID, amount, phone })
     try {
         // validate the request
         if (serviceID === "" || amount === "" || phone === "") {
