@@ -57,6 +57,12 @@ mongoose
   .then((conn) => console.log("database connection success..."))
   .catch((err) => console.log("database connection failed" + err));
 
+
+// Health Check Requirement
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // configure app routes
 app.use("/user", User);
 app.use("/account", Account);
