@@ -29,7 +29,7 @@ const createMonnifyAccount = async (apiToken, user) => {
         currencyCode: 'NGN',
         contractCode: '440026499445',
         customerEmail: user.email,
-        bvn: '21212121212',
+        bvn: '22466031424',
         customerName: user.username,
         getAllAvailableBanks: true,
       },

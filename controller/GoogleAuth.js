@@ -34,6 +34,7 @@ const googleOAuth = async (request, response) => {
           });
         } else {
           // If it's not a Google OAuth user, handle accordingly
+          console.log(error)
           return response.status(400).json({ message: "Email already registered with a password user" });
         }
       }
