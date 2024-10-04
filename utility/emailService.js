@@ -11,19 +11,19 @@ const transporter = createTransport({
     }
 })
 
-const sendVerificationEmail = async (email, verificationToken, user) => {
+const sendVerificationEmail = async (email, verificationToken, username) => {
     // Define the email message
     const mailOptions = {
         from: "Doublelink Online <onboarding@doublelinkng.com>",
         to: [email],
-        subject: `Hello ${user.username} | Verify your account`,
+        subject: `Hello ${username} | Verify your account`,
         html: `
                     <div style="background-color: #f3f3f3; padding: 1px; text-align: center;">
             <div style="display: inline-block; background-color: #fff; font-size: 20px; border-radius: 10px; text-align: left;">
                 <div style="background-color: #5e17eb; color: white; padding: 10px;">
                     <h2 style="margin: 0;">Doublelink <span>Online</span></h2>
                 </div>
-                <p style="margin-left: 10px">Hello, ${user.username}</p>
+                <p style="margin-left: 10px">Hello, ${username}</p>
                 <p style="padding: 10px 10px;">Thank you for signing up. Find the token to verify your account below:</p>
                 <p style="padding: 10px; font-size: 30px; font-weight: bold; color: #007bff;">${verificationToken}</p>
                 <p style="padding: 10px;">Please click on the link below to verify your email:</p>
@@ -32,7 +32,7 @@ const sendVerificationEmail = async (email, verificationToken, user) => {
 
                 <div style="background-color: #737373; color: #f1f1f1; padding: 10px; ">
                     <p style="margin: 0; font-size: 15px; text-align: center;">© 2024 Doublelink Telecommunication Limited. All Rights Reserved. Suite 32, Premier Plaza, Otta</p>
-                    <p style="margin: 0; font-size: 15px; text-align: center;">This email was sent to ${user.email}.</p>
+                    <p style="margin: 0; font-size: 15px; text-align: center;">This email was sent to ${email}.</p>
                 </div>
             </div>
         </div>

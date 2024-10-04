@@ -171,9 +171,9 @@ const resend_verification_token = async (request, response) => {
     // generate token
     const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
 
-
+    const username = userExists.username;
     // Send the verification email
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, verificationToken, username);
 
 
     userExists.verification_token = verificationToken;

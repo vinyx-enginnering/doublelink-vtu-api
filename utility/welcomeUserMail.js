@@ -16,7 +16,7 @@ const sendVerificationEmail = async (email, verificationToken, user) => {
     const mailOptions = {
         from: "Doublelink Online <onboarding@doublelinkonline.com.ng>",
         to: [email],
-        subject:    `Welcome  ${user.name} | `,
+        subject:    `Welcome  ${user.username} | `,
         html: `
         <div style="background-color: #f3f3f3; padding: 1px; text-align: center;">
             <div style="display: inline-block; background-color: #fff; font-size: 20px; border-radius: 10px; text-align: left;">

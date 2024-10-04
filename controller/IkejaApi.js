@@ -128,11 +128,6 @@ const purchase_ikeja = async (request, response) => {
             return;
         }
 
-        // logs
-        console.log(data);
-        console.log(request.body);
-        console.log(data.response_description)
-
         // calculate cashback
         const calculative_amount = parseInt(amount);
         const cash_back = (calculative_amount * 0.2) / 100;
